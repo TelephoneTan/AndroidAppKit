@@ -78,13 +78,13 @@ publishing {
 dependencies {
 
     implementation(kotlin("reflect"))
-    implementation(libs.http.request)
+    api(libs.http.request)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.webkit)
     coreLibraryDesugaring(libs.android.desugar)
-    implementation(libs.androidx.ui.graphics.android)
+    api(libs.androidx.ui.graphics.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
