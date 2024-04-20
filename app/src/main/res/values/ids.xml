@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tagKey_MainActivityLoad" type="id" />
+    <item name="tagInitKey_MainActivityLoad" type="id" />
+</resources>
