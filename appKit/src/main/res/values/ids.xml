@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tagKey_DataNode" type="id" />
+    <item name="tagInitKey_DataNode" type="id" />
+    <item name="tagKey_DataSource" type="id" />
+    <item name="tagInitKey_DataSource" type="id" />
+    <item name="tagKey_BrowserSetTitle" type="id" />
+    <item name="tagInitKey_BrowserSetTitle" type="id" />
+    <item name="tagKey_BrowserSetCurrentWebView" type="id" />
+    <item name="tagInitKey_BrowserSetCurrentWebView" type="id" />
+    <item name="tagKey_MyActivityLoad" type="id" />
+    <item name="tagInitKey_MyActivityLoad" type="id" />
+    <item name="tagKey_DataNodeColor" type="id" />
+    <item name="tagInitKey_DataNodeColor" type="id" />
+</resources>
