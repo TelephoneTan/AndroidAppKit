@@ -1,16 +1,23 @@
 package pub.telephone.appKitApp
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.lifecycle.LifecycleOwner
+import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.browser.BrowserState
 import pub.telephone.appKit.dataSource.ColorConfig
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
+import pub.telephone.appKit.dataSource.Mode
 import pub.telephone.appKit.dataSource.TagKey
-import pub.telephone.appKitApp.config.colorManager
+import pub.telephone.appKitApp.config.colorsOf
 import pub.telephone.appKitApp.databinding.ActivityMainBinding
+import pub.telephone.javapromise.async.promise.Promise
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicReference
 
@@ -29,12 +36,14 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
                 return BrowserState(
                     lifecycleOwner,
                     holder,
-                    "https://appassets.androidplatform.net/assets/圣诞树.html"
+                    "https://www.apple.com.cn/"
                 ) {
                     title = it
                 }.also { currentBrowserR.set(it) }
             }
         }
+
+    data class ImagePack(val bitmap: Bitmap, @ColorInt val color: Int)
 
     inner class DataNode(
         lifecycleOwner: WeakReference<LifecycleOwner>?,
@@ -52,9 +61,37 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
             watchColor()
         }
 
+        private val image: Binding<ImagePack?> = bindTask(
+            TagKey(R.id.tagKey_MainActivityImage, R.id.tagInitKey_MainActivityImage),
+            RetrySharedTask.Simple {
+                Promise.Resolve(
+                    R.drawable.leaf.let { id ->
+                        AppKit.colorOfBitmap(id)?.let { color ->
+                            ImagePack(
+                                bitmap = BitmapFactory.decodeResource(resources, id),
+                                color = color
+                            )
+                        }
+                    }
+                )
+            }
+        )
+
         override fun color_ui(holder: MainActivity.ViewHolder, colors: ColorConfig<*>) {
-            colors.of(colorManager)?.let { c ->
-                holder.view.input.setTextColor(c.main.text)
+            EmitChange_ui(mutableSetOf(image.ReInit()))
+        }
+
+        override fun __bind__(changedBindingKeys: MutableSet<Int>?) {
+            image.Bind(changedBindingKeys) { holder, pack ->
+                pack?.run {
+                    background_ui = BitmapDrawable(resources, bitmap)
+                    applyBackgroundColor_ui(color)
+                    colorsOf(if (isLightColor(color)) Mode.DEFAULT else Mode.NIGHT)?.let { c ->
+                        setTextColor_ui(titleColor(c))
+                        holder.view.input.setTextColor(c.main.text)
+                    }
+                }
+                null
             }
         }
     }

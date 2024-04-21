@@ -1,6 +1,7 @@
 package pub.telephone.appKit
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -62,12 +63,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 holder.view.myActivityBackground.setBackgroundColor(it)
                 applyBackgroundColor_ui(it)
             }
-            titleColor(colors).also {
-                holder.view.toolBar.apply {
-                    setTitleTextColor(it)
-                    setNavigationIconTint(it)
-                }
-            }
+            setTextColor_ui(holder, titleColor(colors))
         }
     }
 
@@ -150,6 +146,8 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
+    private var holder: ViewHolder? = null
+
     final override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
@@ -169,6 +167,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
             }
         }
         val holder = ViewHolder(layoutInflater, null)
+        this.holder = holder
         ViewCompat.setOnApplyWindowInsetsListener(holder.itemView, onApplyWindowInsetsListener)
         insetsController = WindowCompat.getInsetsController(window, holder.itemView)
         applyBackgroundColor_ui(useWhiteBarText_ui)
@@ -197,4 +196,26 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     ) {
         onSaveInstanceState(outState)
     }
+
+    final override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
+
+    @Suppress("PropertyName")
+    protected var background_ui
+        get() = holder?.view?.myActivityBackground?.background
+        set(value) {
+            holder?.view?.myActivityBackground?.background = value
+        }
+
+    @Suppress("FunctionName")
+    private fun setTextColor_ui(holder: ViewHolder?, @ColorInt color: Int) {
+        holder?.view?.toolBar?.apply {
+            setTitleTextColor(color)
+            setNavigationIconTint(color)
+        }
+    }
+
+    @Suppress("FunctionName")
+    protected fun setTextColor_ui(@ColorInt color: Int) = setTextColor_ui(holder, color)
 }

@@ -63,3 +63,5 @@ private val template = Colors(
 )
 
 val colorManager = ColorManager(template, null as Colors<Int>?)
+
+fun colorsOf(mode: Mode) = mode.calc(template).of(colorManager)

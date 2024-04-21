@@ -26,7 +26,7 @@ enum class Mode {
         internal val fallback = DEFAULT
     }
 
-    internal fun calc(from: ColorConfig<*>): ColorConfig<*> = Selector.transform(from.copy(), this)
+    fun calc(from: ColorConfig<*>): ColorConfig<*> = Selector.transform(from.copy(), this)
 }
 
 class ColorManager<T : ColorConfig<*>, R : ColorConfig<*>>(

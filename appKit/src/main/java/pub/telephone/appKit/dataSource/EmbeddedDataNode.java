@@ -73,6 +73,9 @@ public abstract class EmbeddedDataNode<
     protected void loaded_ui(@NotNull VH holder) {
     }
 
+    protected void __bind__(Set<Integer> changedBindingKeys) {
+    }
+
     @Override
     protected final void __Bind__(Set<Integer> changedBindingKeys) {
         init.Bind(
@@ -97,5 +100,6 @@ public abstract class EmbeddedDataNode<
                 },
                 null
         );
+        __bind__(changedBindingKeys);
     }
 }

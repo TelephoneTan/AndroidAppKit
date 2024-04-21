@@ -2,4 +2,6 @@
 <resources>
     <item name="tagKey_MainActivityLoad" type="id" />
     <item name="tagInitKey_MainActivityLoad" type="id" />
+    <item name="tagKey_MainActivityImage" type="id" />
+    <item name="tagInitKey_MainActivityImage" type="id" />
 </resources>
