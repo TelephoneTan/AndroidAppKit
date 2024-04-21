@@ -148,7 +148,10 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
 
     private var holder: ViewHolder? = null
 
+    protected fun onSplash() {}
+
     final override fun onCreate(savedInstanceState: Bundle?) {
+        onSplash()
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         enableEdgeToEdge()
