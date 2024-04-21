@@ -20,6 +20,7 @@ abstract class MyApp : Application() {
         val context: Context get() = app.applicationContext
         val colorManager get() = app.myColorManager
         val resources: Resources get() = app.resources
+        val isInNightMode: Boolean get() = isNight(resources.configuration)
         fun post(r: Runnable) = ui.post(r)
         private fun isNight(config: Configuration): Boolean {
             return config.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
