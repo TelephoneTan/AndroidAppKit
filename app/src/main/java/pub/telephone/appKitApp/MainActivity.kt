@@ -146,4 +146,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
             }
         } ?: super_onBackPressed()
     }
+
+    override val menu_ui: Int
+        get() = R.menu.browser
 }

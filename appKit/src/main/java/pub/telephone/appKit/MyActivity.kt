@@ -6,7 +6,11 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +24,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.forEach
 import androidx.lifecycle.LifecycleOwner
 import pub.telephone.appKit.dataSource.ColorConfig
 import pub.telephone.appKit.dataSource.DataNode
@@ -222,9 +227,35 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         holder?.view?.toolBar?.apply {
             setTitleTextColor(color)
             setNavigationIconTint(color)
+            overflowIcon?.apply {
+                colorFilter = null
+                setTint(color)
+            }
+            menu?.forEach { m ->
+                m.title = m.title?.let {
+                    SpannableString(it).apply {
+                        setSpan(
+                            ForegroundColorSpan(color),
+                            0,
+                            it.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                }
+            }
         }
     }
 
     @Suppress("FunctionName")
     protected fun setTextColor_ui(@ColorInt color: Int) = setTextColor_ui(holder, color)
+
+    @Suppress("PropertyName")
+    protected open val menu_ui: Int? = null
+
+    final override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menu_ui?.also {
+            menuInflater.inflate(it, menu)
+        }
+        return true
+    }
 }
