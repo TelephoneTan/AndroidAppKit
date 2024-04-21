@@ -148,7 +148,11 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
 
     private var holder: ViewHolder? = null
 
-    protected fun onSplash() {}
+    protected open fun onSplash() {}
+
+    @Suppress("FunctionName")
+    protected open fun onCreated_ui(savedInstanceState: Bundle?) {
+    }
 
     final override fun onCreate(savedInstanceState: Bundle?) {
         onSplash()
@@ -183,6 +187,8 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         title = title_ui
         setContentView(holder.itemView)
         DataNode(WeakReference(this), holder).EmitChange_ui(null)
+        //
+        onCreated_ui(savedInstanceState)
     }
 
     final override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
