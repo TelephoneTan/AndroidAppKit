@@ -34,7 +34,7 @@ private typealias MyActivityINFO = Any?
 
 abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     : AppCompatActivity(), EmbeddedDataNodeAPI.All<CH, MyActivityINFO, CD> {
-    inner class ViewHolder(inflater: LayoutInflater, parent: ViewGroup?) :
+    inner class UI(inflater: LayoutInflater, parent: ViewGroup?) :
         EmbeddedDataNode.ViewHolder<MyActivityBinding, CH>(
             inflater, parent, MyActivityBinding::class.java, this
         ),
@@ -44,10 +44,10 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
-    inner class DataNode(
+    inner class State(
         lifecycleOwner: WeakReference<LifecycleOwner>?,
-        holder: MyActivity<CH, CD>.ViewHolder?
-    ) : EmbeddedDataNode<CH, ViewHolder, MyActivityINFO, CD>(
+        holder: MyActivity<CH, CD>.UI?
+    ) : EmbeddedDataNode<CH, UI, MyActivityINFO, CD>(
         lifecycleOwner, holder, this
     ), EmbeddedDataNodeAPI.DataNode<CH, MyActivityINFO, CD> by this {
         init {
@@ -58,7 +58,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
             return TagKey.MyActivityLoad
         }
 
-        override fun color_ui(holder: MyActivity<CH, CD>.ViewHolder, colors: ColorConfig<*>) {
+        override fun color_ui(holder: MyActivity<CH, CD>.UI, colors: ColorConfig<*>) {
             backgroundColor(colors).also {
                 holder.view.myActivityBackground.setBackgroundColor(it)
                 applyBackgroundColor_ui(it)
@@ -146,7 +146,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
-    private var holder: ViewHolder? = null
+    private var holder: UI? = null
 
     protected open fun onSplash() {}
 
@@ -173,7 +173,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 isStatusBarContrastEnforced = false
             }
         }
-        val holder = ViewHolder(layoutInflater, null)
+        val holder = UI(layoutInflater, null)
         this.holder = holder
         ViewCompat.setOnApplyWindowInsetsListener(holder.itemView, onApplyWindowInsetsListener)
         insetsController = WindowCompat.getInsetsController(window, holder.itemView)
@@ -186,7 +186,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
         title = title_ui
         setContentView(holder.itemView)
-        DataNode(WeakReference(this), holder).EmitChange_ui(null)
+        State(WeakReference(this), holder).EmitChange_ui(null)
         //
         onCreated_ui(savedInstanceState)
     }
@@ -218,7 +218,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
     @Suppress("FunctionName")
-    private fun setTextColor_ui(holder: ViewHolder?, @ColorInt color: Int) {
+    private fun setTextColor_ui(holder: UI?, @ColorInt color: Int) {
         holder?.view?.toolBar?.apply {
             setTitleTextColor(color)
             setNavigationIconTint(color)

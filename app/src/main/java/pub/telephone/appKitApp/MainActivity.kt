@@ -28,10 +28,10 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
     private val currentBrowser: BrowserState? get() = currentBrowserR.get()
     private val browserCreator =
         object :
-            EmbeddedDataNodeAPI.DataNodeCreator<BrowserState.ViewHolder, MainActivityINFO, BrowserState> {
+            EmbeddedDataNodeAPI.DataNodeCreator<BrowserState.UI, MainActivityINFO, BrowserState> {
             override fun createChild(
                 lifecycleOwner: WeakReference<LifecycleOwner>?,
-                holder: BrowserState.ViewHolder?
+                holder: BrowserState.UI?
             ): BrowserState {
                 return BrowserState(
                     lifecycleOwner,
@@ -49,10 +49,10 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         lifecycleOwner: WeakReference<LifecycleOwner>?,
         holder: MainActivity.ViewHolder?
     ) :
-        EmbeddedDataNode<BrowserState.ViewHolder, ViewHolder, MainActivityINFO, BrowserState>(
+        EmbeddedDataNode<BrowserState.UI, ViewHolder, MainActivityINFO, BrowserState>(
             lifecycleOwner, holder, browserCreator
         ),
-        EmbeddedDataNodeAPI.DataNodeCreator<BrowserState.ViewHolder, MainActivityINFO, BrowserState> by browserCreator {
+        EmbeddedDataNodeAPI.DataNodeCreator<BrowserState.UI, MainActivityINFO, BrowserState> by browserCreator {
         override fun loadKey(): TagKey {
             return TagKey(R.id.tagKey_MainActivityLoad, R.id.tagInitKey_MainActivityLoad)
         }
@@ -97,23 +97,23 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
     }
 
     class ViewHolder(inflater: LayoutInflater, container: ViewGroup?) :
-        EmbeddedDataNode.ViewHolder<ActivityMainBinding, BrowserState.ViewHolder>(
+        EmbeddedDataNode.ViewHolder<ActivityMainBinding, BrowserState.UI>(
             inflater,
             container,
             ActivityMainBinding::class.java,
             Creator
-        ), EmbeddedDataNodeAPI.ViewHolderCreator<BrowserState.ViewHolder> by Creator {
+        ), EmbeddedDataNodeAPI.ViewHolderCreator<BrowserState.UI> by Creator {
         override fun retrieveContainer(): ViewGroup {
             return view.mainContent
         }
 
         private object Creator :
-            EmbeddedDataNodeAPI.ViewHolderCreator<BrowserState.ViewHolder> {
+            EmbeddedDataNodeAPI.ViewHolderCreator<BrowserState.UI> {
             override fun createChild(
                 inflater: LayoutInflater,
                 container: ViewGroup?
-            ): BrowserState.ViewHolder {
-                return BrowserState.ViewHolder(inflater, container)
+            ): BrowserState.UI {
+                return BrowserState.UI(inflater, container)
             }
         }
     }

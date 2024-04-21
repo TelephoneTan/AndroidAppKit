@@ -25,13 +25,13 @@ import java.lang.ref.WeakReference
 
 class BrowserState(
     lifecycleOwner: WeakReference<LifecycleOwner>?,
-    holder: ViewHolder?,
+    holder: UI?,
     private val initURL: String,
     private val initReferer: String? = null,
     @Suppress("PrivatePropertyName")
     private val setTitle_ui: ((title: String) -> Unit)? = null,
-) : DataNode<BrowserState.ViewHolder>(lifecycleOwner, holder) {
-    class ViewHolder(inflater: LayoutInflater, container: ViewGroup?) :
+) : DataNode<BrowserState.UI>(lifecycleOwner, holder) {
+    class UI(inflater: LayoutInflater, container: ViewGroup?) :
         DataViewHolder<BrowserBinding>(BrowserBinding::class.java, inflater, container)
 
     companion object {
