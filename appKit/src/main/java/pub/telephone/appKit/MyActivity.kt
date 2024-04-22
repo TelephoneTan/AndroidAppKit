@@ -162,6 +162,10 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     @Suppress("PropertyName")
     protected open val noElevation_ui = true
 
+    @Suppress("FunctionName")
+    protected open fun beforeCreateChild_ui() {
+    }
+
     final override fun onCreate(savedInstanceState: Bundle?) {
         onSplash()
         super.onCreate(savedInstanceState)
@@ -181,6 +185,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 isStatusBarContrastEnforced = false
             }
         }
+        beforeCreateChild_ui()
         val holder = UI(layoutInflater, null)
         this.holder = holder
         ViewCompat.setOnApplyWindowInsetsListener(holder.itemView, onApplyWindowInsetsListener)
