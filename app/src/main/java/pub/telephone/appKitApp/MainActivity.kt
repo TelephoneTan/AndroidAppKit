@@ -2,7 +2,6 @@ package pub.telephone.appKitApp
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -14,9 +13,8 @@ import pub.telephone.appKit.browser.BrowserState
 import pub.telephone.appKit.dataSource.ColorConfig
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
-import pub.telephone.appKit.dataSource.Mode
 import pub.telephone.appKit.dataSource.TagKey
-import pub.telephone.appKitApp.config.colorsOf
+import pub.telephone.appKitApp.config.colorManager
 import pub.telephone.appKitApp.databinding.ActivityMainBinding
 import pub.telephone.javapromise.async.promise.Promise
 import java.lang.ref.WeakReference
@@ -79,21 +77,24 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         )
 
         override fun color_ui(holder: MainActivity.ViewHolder, colors: ColorConfig<*>) {
-            EmitChange_ui(mutableSetOf(image.ReInit()))
+            colors.of(colorManager)?.let { c ->
+                holder.view.input.setTextColor(c.main.text)
+            }
+//            EmitChange_ui(mutableSetOf(image.ReInit()))
         }
 
         override fun __bind__(changedBindingKeys: MutableSet<Int>?) {
-            image.Bind(changedBindingKeys) { holder, pack ->
-                pack?.run {
-                    background_ui = BitmapDrawable(resources, bitmap)
-                    applyBackgroundColor_ui(color)
-                    colorsOf(if (isLightColor(color)) Mode.DEFAULT else Mode.NIGHT)?.let { c ->
-                        setTextColor_ui(titleColor(c))
-                        holder.view.input.setTextColor(c.main.text)
-                    }
-                }
-                null
-            }
+//            image.Bind(changedBindingKeys) { holder, pack ->
+//                pack?.run {
+//                    background_ui = BitmapDrawable(resources, bitmap)
+//                    applyBackgroundColor_ui(color)
+//                    colorsOf(if (isLightColor(color)) Mode.DEFAULT else Mode.NIGHT)?.let { c ->
+//                        setTextColor_ui(titleColor(c))
+//                        holder.view.input.setTextColor(c.main.text)
+//                    }
+//                }
+//                null
+//            }
         }
     }
 

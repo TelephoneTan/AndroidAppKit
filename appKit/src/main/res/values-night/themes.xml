@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.AppKit.ToolbarPopUp" parent="ThemeOverlay.Material3.Light">
+    <style name="Theme.AppKit.ToolbarPopUp" parent="ThemeOverlay.Material3.Dark">
         <item name="colorSurface">#ff1e1e1e</item>
         <item name="android:textColorPrimary">#ffffffff</item>
         <item name="android:colorControlHighlight">#1affffff</item>
