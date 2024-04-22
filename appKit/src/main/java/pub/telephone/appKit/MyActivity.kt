@@ -247,6 +247,23 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 colorFilter = null
                 setTint(color)
             }
+            menuColor_ui = color
+            renderMenu_ui(menu)
+        }
+    }
+
+    @Suppress("FunctionName")
+    protected fun setTextColor_ui(@ColorInt color: Int) = setTextColor_ui(holder, color)
+
+    @Suppress("PropertyName")
+    protected open val menu_ui: Int? = null
+
+    @Suppress("PrivatePropertyName")
+    private var menuColor_ui: Int? = null
+
+    @Suppress("FunctionName")
+    private fun renderMenu_ui(menu: Menu?): Menu? {
+        menuColor_ui?.let { color ->
             menu?.forEach menuForEach@{ m ->
                 if (!isMenuShownAsAction_ui(m)) {
                     return@menuForEach
@@ -263,18 +280,19 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 }
             }
         }
+        return menu
     }
-
-    @Suppress("FunctionName")
-    protected fun setTextColor_ui(@ColorInt color: Int) = setTextColor_ui(holder, color)
-
-    @Suppress("PropertyName")
-    protected open val menu_ui: Int? = null
 
     final override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menu_ui?.also {
             menuInflater.inflate(it, menu)
+            renderMenu_ui(menu)
         }
+        return true
+    }
+
+    final override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        renderMenu_ui(menu)
         return true
     }
 }
