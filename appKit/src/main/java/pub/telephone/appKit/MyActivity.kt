@@ -95,9 +95,6 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         applyBackgroundColor_ui(isLightColor(color).not())
     }
 
-    @Suppress("PropertyName")
-    protected open val useWhiteBarText_ui = false
-
     companion object {
         private val onApplyWindowInsetsListener = OnApplyWindowInsetsListener { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -190,7 +187,6 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         this.holder = holder
         ViewCompat.setOnApplyWindowInsetsListener(holder.itemView, onApplyWindowInsetsListener)
         insetsController = WindowCompat.getInsetsController(window, holder.itemView)
-        applyBackgroundColor_ui(useWhiteBarText_ui)
         holder.view.toolBar.takeUnless { noTitle() }?.let {
             it.takeIf { noHome() }?.navigationIcon = null
             it.takeIf { noElevation_ui }?.elevation = 0f
