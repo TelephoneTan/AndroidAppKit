@@ -223,6 +223,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
     @Suppress("FunctionName")
+    protected open fun isMenuShownAsAction_ui(m: MenuItem) = true
+
+    @Suppress("FunctionName")
     private fun setTextColor_ui(holder: UI?, @ColorInt color: Int) {
         holder?.view?.toolBar?.apply {
             setTitleTextColor(color)
@@ -231,9 +234,12 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
                 colorFilter = null
                 setTint(color)
             }
-            menu?.forEach { m ->
+            menu?.forEach menuForEach@{ m ->
+                if (!isMenuShownAsAction_ui(m)) {
+                    return@menuForEach
+                }
                 m.title = m.title?.let {
-                    SpannableString(it).apply {
+                    SpannableString(it.toString()).apply {
                         setSpan(
                             ForegroundColorSpan(color),
                             0,
