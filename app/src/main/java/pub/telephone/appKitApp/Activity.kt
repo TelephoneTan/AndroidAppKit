@@ -7,11 +7,11 @@ import pub.telephone.appKit.dataSource.DataViewHolder
 import pub.telephone.appKitApp.config.colorManager
 
 abstract class Activity<CH : DataViewHolder<*>, CD : DataNode<CH>> : MyActivity<CH, CD>() {
-    override fun backgroundColor(colors: ColorConfig<*>): Int {
+    override fun backgroundColor_ui(colors: ColorConfig<*>): Int {
         return colors.of(colorManager)!!.activity.background
     }
 
-    override fun titleColor(colors: ColorConfig<*>): Int {
+    override fun titleColor_ui(colors: ColorConfig<*>): Int {
         return colors.of(colorManager)!!.activity.text
     }
 }

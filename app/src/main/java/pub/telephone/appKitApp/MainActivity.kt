@@ -134,16 +134,16 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         return DataNode(lifecycleOwner, holder)
     }
 
-    override fun handleAndroidHome() {
-        super_onBackPressed()
+    override fun handleAndroidHome_ui() {
+        super_onBackPressed_ui()
     }
 
     override fun onBackPressed_ui() {
-        currentBrowser?.onBackPressed_ui(::super_onBackPressed)?.also { consumed ->
+        currentBrowser?.onBackPressed_ui(::super_onBackPressed_ui)?.also { consumed ->
             if (!consumed) {
                 Toast.makeText(this, "已经是第一页", Toast.LENGTH_LONG).show()
             }
-        } ?: super_onBackPressed()
+        } ?: super_onBackPressed_ui()
     }
 
     override val menu_ui: Int

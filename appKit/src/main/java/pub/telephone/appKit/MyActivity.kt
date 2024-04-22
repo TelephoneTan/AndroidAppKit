@@ -64,19 +64,22 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
         override fun color_ui(holder: MyActivity<CH, CD>.UI, colors: ColorConfig<*>) {
-            backgroundColor(colors).also {
+            backgroundColor_ui(colors).also {
                 holder.view.myActivityBackground.setBackgroundColor(it)
                 applyBackgroundColor_ui(it)
             }
-            setTextColor_ui(holder, titleColor(colors))
+            setTextColor_ui(holder, titleColor_ui(colors))
         }
     }
 
     protected open fun noTitle() = false
     protected open fun noHome() = false
 
-    protected abstract fun backgroundColor(colors: ColorConfig<*>): Int
-    protected abstract fun titleColor(colors: ColorConfig<*>): Int
+    @Suppress("FunctionName")
+    protected abstract fun backgroundColor_ui(colors: ColorConfig<*>): Int
+
+    @Suppress("FunctionName")
+    protected abstract fun titleColor_ui(colors: ColorConfig<*>): Int
 
     @Suppress("PropertyName")
     protected abstract val title_ui: String
@@ -107,16 +110,19 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
-    protected open fun handleAndroidHome() {
+    @Suppress("FunctionName")
+    protected open fun handleAndroidHome_ui() {
         handleOnBackPressed()
     }
 
-    protected open fun handleOptionsItemSelected(itemID: Int) {}
+    @Suppress("FunctionName")
+    protected open fun handleOptionsItemSelected_ui(itemID: Int) {
+    }
 
     final override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (val id = item.itemId) {
-            android.R.id.home -> handleAndroidHome()
-            else -> handleOptionsItemSelected(id)
+            android.R.id.home -> handleAndroidHome_ui()
+            else -> handleOptionsItemSelected_ui(id)
         }
         return true
     }
@@ -128,14 +134,14 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     }
 
     @Suppress("FunctionName")
-    protected fun super_onBackPressed() {
+    protected fun super_onBackPressed_ui() {
         onBackPressedCallback.isEnabled = false
         onBackPressedDispatcher.onBackPressed()
     }
 
     @Suppress("FunctionName")
     protected open fun onBackPressed_ui() {
-        super_onBackPressed()
+        super_onBackPressed_ui()
     }
 
     private fun handleOnBackPressed() {
@@ -150,7 +156,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
 
     private var holder: UI? = null
 
-    protected open fun onSplash() {}
+    @Suppress("FunctionName")
+    protected open fun onSplash_ui() {
+    }
 
     @Suppress("FunctionName")
     protected open fun onCreated_ui(savedInstanceState: Bundle?) {
@@ -164,7 +172,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     }
 
     final override fun onCreate(savedInstanceState: Bundle?) {
-        onSplash()
+        onSplash_ui()
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         enableEdgeToEdge()
