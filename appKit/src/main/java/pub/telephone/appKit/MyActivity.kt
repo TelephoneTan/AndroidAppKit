@@ -163,8 +163,8 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     protected open val noElevation_ui = true
 
     final override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         onSplash()
+        super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         enableEdgeToEdge()
         window.apply {
