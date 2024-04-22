@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -149,4 +150,8 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
 
     override val menu_ui: Int
         get() = R.menu.browser
+
+    override fun isMenuShownAsAction_ui(m: MenuItem): Boolean {
+        return m.itemId != R.id.refresh
+    }
 }

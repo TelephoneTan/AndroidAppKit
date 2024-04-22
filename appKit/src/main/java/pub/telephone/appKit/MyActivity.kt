@@ -159,9 +159,12 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     protected open fun onCreated_ui(savedInstanceState: Bundle?) {
     }
 
+    @Suppress("PropertyName")
+    protected open val noElevation_ui = true
+
     final override fun onCreate(savedInstanceState: Bundle?) {
-        onSplash()
         super.onCreate(savedInstanceState)
+        onSplash()
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         enableEdgeToEdge()
         window.apply {
@@ -185,6 +188,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         applyBackgroundColor_ui(useWhiteBarText_ui)
         holder.view.toolBar.takeUnless { noTitle() }?.let {
             it.takeIf { noHome() }?.navigationIcon = null
+            it.takeIf { noElevation_ui }?.elevation = 0f
             setSupportActionBar(it)
         } ?: let {
             holder.view.toolBar.visibility = View.GONE
