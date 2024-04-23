@@ -121,7 +121,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
     }
 
     override val title_ui: String
-        get() = "冰河导航"
+        get() = "主页"
 
     override fun createChild(inflater: LayoutInflater, container: ViewGroup?): ViewHolder {
         return ViewHolder(inflater, container)
