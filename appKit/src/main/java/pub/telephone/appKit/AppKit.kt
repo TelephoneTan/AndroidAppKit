@@ -73,6 +73,13 @@ class AppKit {
             ) { options -> BitmapFactory.decodeResource(MyApp.resources, resID, options) }
         }
 
+        private fun decodeSampledBitmapFrom(ba: ByteArray, reqWidth: Int, reqHeight: Int): Bitmap? {
+            return decodeSampledBitmapFrom(
+                reqWidth,
+                reqHeight,
+            ) { options -> BitmapFactory.decodeByteArray(ba, 0, ba.size, options) }
+        }
+
         private fun getScreenSizePx(): Map.Entry<Int, Int> {
             val metrics: DisplayMetrics = MyApp.resources.displayMetrics
             return AbstractMap.SimpleEntry(metrics.widthPixels, metrics.heightPixels)
@@ -91,30 +98,75 @@ class AppKit {
             )
         }
 
-        fun decodeThumbnailBitmapFrom(uri: Uri): Bitmap? {
+        private fun decodeThumbnailBitmapFrom(decoder: (w: Int, h: Int) -> Bitmap?): Bitmap? {
             val sizePx = getHalfVMinPx()
-            return decodeSampledBitmapFrom(uri, sizePx, sizePx)
+            return decoder(sizePx, sizePx)
         }
 
-        fun decodeMagnifiedScreenBitmapFrom(uri: Uri, magnification: Float): Bitmap? {
+        fun decodeThumbnailBitmapFrom(uri: Uri) =
+            decodeThumbnailBitmapFrom { w, h -> decodeSampledBitmapFrom(uri, w, h) }
+
+        fun decodeThumbnailBitmapFrom(resID: Int) =
+            decodeThumbnailBitmapFrom { w, h -> decodeSampledBitmapFrom(resID, w, h) }
+
+        fun decodeThumbnailBitmapFrom(ba: ByteArray) =
+            decodeThumbnailBitmapFrom { w, h -> decodeSampledBitmapFrom(ba, w, h) }
+
+        private fun decodeMagnifiedScreenBitmapFrom(
+            magnification: Float,
+            decoder: (w: Int, h: Int) -> Bitmap?
+        ): Bitmap? {
             val (w, h) = getMagnifiedScreenSizePx(magnification)
-            return decodeSampledBitmapFrom(uri, w, h)
+            return decoder(w, h)
         }
 
-        private fun decodeOnePixelBitmapFrom(uri: Uri) = decodeSampledBitmapFrom(uri, 1, 1)
-        fun colorOfBitmap(uri: Uri) = decodeOnePixelBitmapFrom(uri)?.getPixel(0, 0)
+        fun decodeMagnifiedScreenBitmapFrom(uri: Uri, magnification: Float) =
+            decodeMagnifiedScreenBitmapFrom(magnification) { w, h ->
+                decodeSampledBitmapFrom(
+                    uri,
+                    w,
+                    h
+                )
+            }
 
-        fun decodeScreenBitmapFrom(uri: Uri) = decodeMagnifiedScreenBitmapFrom(uri, 1f)
+        fun decodeMagnifiedScreenBitmapFrom(resID: Int, magnification: Float) =
+            decodeMagnifiedScreenBitmapFrom(magnification) { w, h ->
+                decodeSampledBitmapFrom(
+                    resID,
+                    w,
+                    h
+                )
+            }
 
+        fun decodeMagnifiedScreenBitmapFrom(ba: ByteArray, magnification: Float) =
+            decodeMagnifiedScreenBitmapFrom(magnification) { w, h ->
+                decodeSampledBitmapFrom(
+                    ba,
+                    w,
+                    h
+                )
+            }
 
-        fun decodeMagnifiedScreenBitmapFrom(resID: Int, magnification: Float): Bitmap? {
-            val (w, h) = getMagnifiedScreenSizePx(magnification)
-            return decodeSampledBitmapFrom(resID, w, h)
-        }
+        private fun colorOfBitmap(decoder: (w: Int, h: Int) -> Bitmap?) =
+            decoder(1, 1)?.getPixel(0, 0)
 
-        private fun decodeOnePixelBitmapFrom(resID: Int) = decodeSampledBitmapFrom(resID, 1, 1)
-        fun colorOfBitmap(resID: Int) = decodeOnePixelBitmapFrom(resID)?.getPixel(0, 0)
+        fun colorOfBitmap(uri: Uri) = colorOfBitmap { w, h -> decodeSampledBitmapFrom(uri, w, h) }
+        fun colorOfBitmap(resID: Int) =
+            colorOfBitmap { w, h -> decodeSampledBitmapFrom(resID, w, h) }
 
-        fun decodeScreenBitmapFrom(resID: Int) = decodeMagnifiedScreenBitmapFrom(resID, 1f)
+        fun colorOfBitmap(ba: ByteArray) =
+            colorOfBitmap { w, h -> decodeSampledBitmapFrom(ba, w, h) }
+
+        private fun decodeScreenBitmapFrom(decoder: (w: Int, h: Int) -> Bitmap?) =
+            decodeMagnifiedScreenBitmapFrom(1f, decoder)
+
+        fun decodeScreenBitmapFrom(uri: Uri) =
+            decodeScreenBitmapFrom { w, h -> decodeSampledBitmapFrom(uri, w, h) }
+
+        fun decodeScreenBitmapFrom(resID: Int) =
+            decodeScreenBitmapFrom { w, h -> decodeSampledBitmapFrom(resID, w, h) }
+
+        fun decodeScreenBitmapFrom(ba: ByteArray) =
+            decodeScreenBitmapFrom { w, h -> decodeSampledBitmapFrom(ba, w, h) }
     }
 }
