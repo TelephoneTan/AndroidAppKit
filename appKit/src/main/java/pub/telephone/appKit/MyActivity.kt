@@ -107,8 +107,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     companion object {
         private val onApplyWindowInsetsListener = OnApplyWindowInsetsListener { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+            v.findViewById<View>(R.id.my_activity_foreground)
+                .setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            WindowInsetsCompat.CONSUMED
         }
 
         fun isLightColor(@ColorInt color: Int): Boolean {
@@ -236,9 +237,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
 
     @Suppress("PropertyName")
     protected var background_ui
-        get() = holder?.view?.myActivityBackground?.background
+        get() = holder?.view?.myActivityBackground?.drawable
         set(value) {
-            holder?.view?.myActivityBackground?.background = value
+            holder?.view?.myActivityBackground?.setImageDrawable(value)
         }
 
     @Suppress("FunctionName")
