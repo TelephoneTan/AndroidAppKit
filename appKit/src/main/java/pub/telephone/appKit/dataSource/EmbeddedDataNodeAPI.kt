@@ -11,7 +11,7 @@ object EmbeddedDataNodeAPI {
         fun createChild(inflater: LayoutInflater, container: ViewGroup?): CH
     }
 
-    interface ViewHolder<CH : DataViewHolder<*>> : ViewHolderCreator<CH>
+    interface ViewHolder<CH : DataViewHolder<*>>
 
     interface DataNodeCreator<
             CH : DataViewHolder<*>,
@@ -26,7 +26,7 @@ object EmbeddedDataNodeAPI {
             CH : DataViewHolder<*>,
             INFO,
             CD : pub.telephone.appKit.dataSource.DataNode<CH>
-            > : DataNodeCreator<CH, INFO, CD> {
+            > {
         @Suppress("FunctionName")
         fun initChild_ui(lifecycleOwner: WeakReference<LifecycleOwner>?, holder: CH) {
         }
@@ -41,5 +41,9 @@ object EmbeddedDataNodeAPI {
             INFO,
             CD : pub.telephone.appKit.dataSource.DataNode<CH>
             >
-        : ViewHolder<CH>, DataNode<CH, INFO, CD>
+        :
+        ViewHolderCreator<CH>,
+        ViewHolder<CH>,
+        DataNodeCreator<CH, INFO, CD>,
+        DataNode<CH, INFO, CD>
 }

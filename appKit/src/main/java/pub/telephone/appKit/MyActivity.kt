@@ -43,8 +43,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     inner class UI(inflater: LayoutInflater, parent: ViewGroup?) :
         EmbeddedDataNode.ViewHolder<MyActivityBinding, CH>(
             inflater, parent, MyActivityBinding::class.java, this
-        ),
-        EmbeddedDataNodeAPI.ViewHolder<CH> by this {
+        ) {
         override fun retrieveContainer(): ViewGroup {
             return view.myActivityContent
         }
@@ -57,7 +56,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         holder: MyActivity<CH, CD>.UI?
     ) : EmbeddedDataNode<CH, UI, MyActivityINFO, CD>(
         lifecycleOwner, holder, this
-    ), EmbeddedDataNodeAPI.DataNode<CH, MyActivityINFO, CD> by this {
+    ) {
         init {
             watchColor()
         }
