@@ -49,7 +49,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
-    protected open val myColorManager: ColorManager<*, *, *>? = MyApp.myColorManager
+    protected open val myColorManager: ColorManager<*, *, *>? = null
 
     inner class State(
         lifecycleOwner: WeakReference<LifecycleOwner>?,
@@ -66,7 +66,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
         override fun getMyColorManager(): ColorManager<*, *, *>? {
-            return this@MyActivity.myColorManager
+            return this@MyActivity.myColorManager ?: super.getMyColorManager()
         }
 
         override fun color_ui(holder: MyActivity<CH, CD>.UI, colors: ColorConfig<*>) {
