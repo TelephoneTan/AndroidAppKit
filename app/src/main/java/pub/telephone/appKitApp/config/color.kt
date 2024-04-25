@@ -42,26 +42,25 @@ private object Palette {
     )
 }
 
-private object Common {
-    val text = C(
+class Common(
+    val background: C = C(
+        Mode.DEFAULT to Palette.white,
+        Mode.NIGHT to CV(Color(0xff1e1e1e)),
+    ),
+    val text: C = C(
         Mode.DEFAULT to Palette.black,
         Mode.NIGHT to Palette.white,
     )
-}
-
-private val template = Colors(
-    activity = ColorsActivity(
-        background = C(
-            Mode.DEFAULT to Palette.white,
-            Mode.NIGHT to CV(Color(0xff1e1e1e)),
-        ),
-        text = Common.text
-    ),
-    main = ColorsMain(
-        text = Common.text
-    ),
 )
 
-val colorManager = ColorManager(template, null as Colors<Int>?)
-
-fun colorsOf(mode: Mode) = mode.calc(template).of(colorManager)
+val colorManager = ColorManager(Common(), null as Colors<Int>?) { common ->
+    Colors(
+        activity = ColorsActivity(
+            background = common.background,
+            text = common.text
+        ),
+        main = ColorsMain(
+            text = common.text
+        ),
+    )
+}

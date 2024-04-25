@@ -7,8 +7,9 @@ interface Value
 
 interface ColorConfig<T : Config<*>> : Config<T> {
     @Suppress("UNCHECKED_CAST")
-    infix fun <T : ColorConfig<*>, R : ColorConfig<*>> of(manager: ColorManager<T, R>): R? =
-        this as? R
+    infix fun <Common, T : ColorConfig<*>, R : ColorConfig<*>> of(
+        manager: ColorManager<Common, T, R>
+    ): R? = this as? R
 }
 
 @JvmInline
@@ -29,28 +30,40 @@ enum class Mode {
     fun calc(from: ColorConfig<*>): ColorConfig<*> = Selector.transform(from.copy(), this)
 }
 
-class ColorManager<T : ColorConfig<*>, R : ColorConfig<*>>(
-    private val from: T,
-    @Suppress("UNUSED_PARAMETER") to: R?
+class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
+    private var common: Common,
+    @Suppress("UNUSED_PARAMETER") to: R?,
+    private val from: (common: Common) -> T
 ) {
-    @Volatile
     private var night: Boolean? = null
 
     @Volatile
-    var current = Mode.fallback.calc(from)
-    fun commit(night: Boolean) {
-        if (night == this.night) {
-            return
+    var current = Mode.fallback.calc(from(common))
+    fun calc(night: Boolean? = null, common: Common? = null): ColorConfig<*> {
+        synchronized(this) {
+            val nightF = night ?: this.night
+            val commonF = common ?: this.common
+            //
+            return when (nightF!!) {
+                true -> Mode.NIGHT
+                false -> Mode.DEFAULT
+            }.calc(from(commonF))
         }
-        when (night) {
-            true -> Mode.NIGHT
-            false -> Mode.DEFAULT
-        }.calc(from).also {
-            synchronized(this) {
-                if (night == this.night) {
-                    return
-                }
-                this.night = night
+    }
+
+    fun commit(night: Boolean? = null, common: Common? = null) {
+        synchronized(this) {
+            if (
+                (night != null && night == this.night) &&
+                (common != null && common == this.common)
+            ) {
+                return
+            }
+            //
+            this.night = night ?: this.night
+            this.common = common ?: this.common
+            //
+            calc().also {
                 current = it
                 DataNodeManager.DataNodeColor.CallOnAll { node ->
                     node.EmitChange_ui(mutableSetOf(node.Color.SetResult(it)))
@@ -58,5 +71,9 @@ class ColorManager<T : ColorConfig<*>, R : ColorConfig<*>>(
                 }
             }
         }
+    }
+
+    companion object {
+        val manager = Manager<ColorManager<*, *, *>>()
     }
 }

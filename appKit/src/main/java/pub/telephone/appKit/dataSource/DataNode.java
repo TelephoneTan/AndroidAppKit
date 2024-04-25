@@ -506,7 +506,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
     final void wrapBind(Set<Integer> changedBindingKeys) {
         Color.Bind(changedBindingKeys, holder -> {
-            ColorManager<?, ?> manager = MyApp.Companion.getColorManager();
+            ColorManager<?, ?, ?> manager = MyApp.Companion.getMyColorManager();
             if (manager != null) {
                 color_ui(holder, manager.getCurrent());
             }

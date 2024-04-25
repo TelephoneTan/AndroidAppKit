@@ -18,7 +18,7 @@ abstract class MyApp : Application() {
         private val app: MyApp get() = appR.get()
         private val ui get() = app.uiHandler
         val context: Context get() = app.applicationContext
-        val colorManager get() = app.myColorManager
+        val myColorManager get() = app.myColorManager
         val resources: Resources get() = app.resources
         val isInNightMode: Boolean get() = isNight(resources.configuration)
         fun post(r: Runnable) = ui.post(r)
@@ -30,11 +30,14 @@ abstract class MyApp : Application() {
     final override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         //
-        myColorManager?.commit(isNight(newConfig))
+        ColorManager.manager.CallOnAll {
+            it.commit(night = isNight(newConfig))
+            null
+        }
     }
 
     @Suppress("PropertyName")
-    protected open val colorManager_ui: ColorManager<*, *>? = null
+    protected open val colorManager_ui: ColorManager<*, *, *>? = null
 
     @Suppress("FunctionName")
     protected open fun onCreated_ui() {
