@@ -1,9 +1,10 @@
 package pub.telephone.appKit.dataSource
 
+import androidx.annotation.ColorInt
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
-interface Value
+interface ColorValue
 
 interface ColorConfig<T : Config<*>> : Config<T> {
     @Suppress("UNCHECKED_CAST")
@@ -13,13 +14,17 @@ interface ColorConfig<T : Config<*>> : Config<T> {
 }
 
 @JvmInline
-value class CV(val color: Color) : Value
+value class CV(val color: Color) : ColorValue
 
-class C(vararg pairs: Pair<Mode, Value>) :
-    Selector<Mode, CV, Int>(Mode.fallback, mapOf(*pairs), { it.color.toArgb() }), Value
+@JvmInline
+value class ICV(@JvmField @ColorInt val color: Int) : ColorValue
+
+class ColorSelector(vararg pairs: Pair<ColorMode, ColorValue>) :
+    Selector<ColorMode, CV, ICV>(ColorMode.fallback, mapOf(*pairs), { ICV(it.color.toArgb()) }),
+    ColorValue
 
 
-enum class Mode {
+enum class ColorMode {
     DEFAULT,
     NIGHT;
 
@@ -27,7 +32,7 @@ enum class Mode {
         internal val fallback = DEFAULT
     }
 
-    fun calc(from: ColorConfig<*>): ColorConfig<*> = Selector.transform(from.copy(), this)
+    fun calc(from: ColorConfig<*>): ColorConfig<*> = Selector.transform(from.copyConfig(), this)
 }
 
 class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
@@ -38,24 +43,28 @@ class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
     private var night: Boolean? = null
 
     @Volatile
-    var current = Mode.fallback.calc(from(common))
-    fun calc(night: Boolean? = null, common: Common? = null): ColorConfig<*> {
+    var current: ColorConfig<*> = ColorMode.fallback.calc(from(common))
+
+    val manager = DataNodeManager<DataNode<*>>()
+    private fun calc(night: Boolean? = null, common: Common? = null): ColorConfig<*> {
         synchronized(this) {
             val nightF = night ?: this.night
             val commonF = common ?: this.common
             //
             return when (nightF!!) {
-                true -> Mode.NIGHT
-                false -> Mode.DEFAULT
+                true -> ColorMode.NIGHT
+                false -> ColorMode.DEFAULT
             }.calc(from(commonF))
         }
     }
 
+    fun of(night: Boolean? = null, common: Common? = null) = calc(night, common).of(this)
+
     fun commit(night: Boolean? = null, common: Common? = null) {
         synchronized(this) {
             if (
-                (night != null && night == this.night) &&
-                (common != null && common == this.common)
+                (night == null || night == this.night) &&
+                (common == null || common == this.common)
             ) {
                 return
             }
@@ -65,7 +74,7 @@ class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
             //
             calc().also {
                 current = it
-                DataNodeManager.DataNodeColor.CallOnAll { node ->
+                manager.CallOnAll { node ->
                     node.EmitChange_ui(mutableSetOf(node.Color.SetResult(it)))
                     null
                 }

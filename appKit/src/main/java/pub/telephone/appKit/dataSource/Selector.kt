@@ -5,7 +5,7 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 
 interface Config<T> {
-    fun copy(): T
+    fun copyConfig(): T
 }
 
 open class Selector<K, V, R>(
@@ -50,7 +50,7 @@ open class Selector<K, V, R>(
                                     return@pLoop
                                 }
                                 @Suppress("UNCHECKED_CAST")
-                                (it as Config<Config<*>>).copy()
+                                (it as Config<Config<*>>).copyConfig()
                             }, k)
                         )
                     }
@@ -59,7 +59,7 @@ open class Selector<K, V, R>(
         }
     }
 
-    override fun copy(): Selector<K, V, R> {
+    override fun copyConfig(): Selector<K, V, R> {
         return this
     }
 }

@@ -27,6 +27,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.forEach
 import androidx.lifecycle.LifecycleOwner
 import pub.telephone.appKit.dataSource.ColorConfig
+import pub.telephone.appKit.dataSource.ColorManager
 import pub.telephone.appKit.dataSource.DataNode
 import pub.telephone.appKit.dataSource.DataViewHolder
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
@@ -49,6 +50,8 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
+    protected open val myColorManager: ColorManager<*, *, *>? = MyApp.myColorManager
+
     inner class State(
         lifecycleOwner: WeakReference<LifecycleOwner>?,
         holder: MyActivity<CH, CD>.UI?
@@ -61,6 +64,10 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
 
         override fun loadKey(): TagKey {
             return TagKey.MyActivityLoad
+        }
+
+        override fun getMyColorManager(): ColorManager<*, *, *>? {
+            return this@MyActivity.myColorManager
         }
 
         override fun color_ui(holder: MyActivity<CH, CD>.UI, colors: ColorConfig<*>) {

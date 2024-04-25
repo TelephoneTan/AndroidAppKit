@@ -2,6 +2,7 @@ package pub.telephone.appKitApp
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -9,12 +10,16 @@ import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.lifecycle.LifecycleOwner
 import pub.telephone.appKit.AppKit
+import pub.telephone.appKit.MyApp
 import pub.telephone.appKit.browser.BrowserState
 import pub.telephone.appKit.dataSource.ColorConfig
+import pub.telephone.appKit.dataSource.ColorManager
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
+import pub.telephone.appKit.dataSource.ICV
 import pub.telephone.appKit.dataSource.TagKey
-import pub.telephone.appKitApp.config.colorManager
+import pub.telephone.appKitApp.config.Colors
+import pub.telephone.appKitApp.config.CommonColors
 import pub.telephone.appKitApp.databinding.ActivityMainBinding
 import pub.telephone.javapromise.async.promise.Promise
 import java.lang.ref.WeakReference
@@ -44,6 +49,13 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
 
     data class ImagePack(val bitmap: Bitmap, @ColorInt val color: Int)
 
+    override val myColorManager =
+        ColorManager(CommonColors.instance, null as Colors<ICV>?, CommonColors::toColors)
+
+    init {
+        ColorManager.manager.Register(myColorManager)
+    }
+
     inner class DataNode(
         lifecycleOwner: WeakReference<LifecycleOwner>?,
         holder: MainActivity.ViewHolder?
@@ -56,6 +68,8 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
             return TagKey(R.id.tagKey_MainActivityLoad, R.id.tagInitKey_MainActivityLoad)
         }
 
+        override fun getMyColorManager() = this@MainActivity.myColorManager
+
         init {
             watchColor()
         }
@@ -67,7 +81,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
                     R.drawable.leaf.let { id ->
                         AppKit.colorOfBitmap(id)?.let { color ->
                             ImagePack(
-                                bitmap = BitmapFactory.decodeResource(resources, id),
+                                bitmap = BitmapFactory.decodeResource(MyApp.resources, id),
                                 color = color
                             )
                         }
@@ -77,24 +91,21 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         )
 
         override fun color_ui(holder: MainActivity.ViewHolder, colors: ColorConfig<*>) {
-            colors.of(colorManager)?.let { c ->
-                holder.view.input.setTextColor(c.main.text)
+            colors.of(myColorManager)?.let { c ->
+                holder.view.input.setTextColor(c.main.text.color)
             }
-//            EmitChange_ui(mutableSetOf(image.ReInit()))
+            EmitChange_ui(mutableSetOf(image.ReInit()))
         }
 
         override fun __bind__(changedBindingKeys: MutableSet<Int>?) {
-//            image.Bind(changedBindingKeys) { holder, pack ->
-//                pack?.run {
-//                    background_ui = BitmapDrawable(resources, bitmap)
-//                    applyBackgroundColor_ui(color)
-//                    colorsOf(if (isLightColor(color)) Mode.DEFAULT else Mode.NIGHT)?.let { c ->
-//                        setTextColor_ui(titleColor(c))
-//                        holder.view.input.setTextColor(c.main.text)
-//                    }
-//                }
-//                null
-//            }
+            image.Bind(changedBindingKeys) { _, pack ->
+                pack?.run {
+                    background_ui = BitmapDrawable(resources, bitmap)
+                    applyBackgroundColor_ui(color)
+                    myColorManager.commit(night = !isLightColor(color))
+                }
+                null
+            }
         }
     }
 
