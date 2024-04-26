@@ -3,6 +3,7 @@ package pub.telephone.appKitApp
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -23,6 +24,7 @@ import pub.telephone.appKitApp.config.CommonColors
 import pub.telephone.appKitApp.databinding.ActivityMainBinding
 import pub.telephone.javapromise.async.promise.Promise
 import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 private typealias MainActivityINFO = Any?
@@ -54,6 +56,14 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
 
     init {
         ColorManager.manager.Register(myColorManager)
+    }
+
+    override fun backgroundColor_ui(colors: ColorConfig<*>): Int {
+        return colors.of(myColorManager)!!.main.background.color
+    }
+
+    override fun titleColor_ui(colors: ColorConfig<*>): Int {
+        return colors.of(myColorManager)!!.main.text.color
     }
 
     inner class DataNode(
@@ -90,9 +100,18 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
             }
         )
 
+        private val firstColor = AtomicBoolean(true)
+
         override fun color_ui(holder: MainActivity.ViewHolder, colors: ColorConfig<*>) {
-            colors.of(myColorManager)?.let { c ->
-                holder.view.input.setTextColor(c.main.text.color)
+            if (firstColor.compareAndSet(true, false)) {
+                backgroundColor_ui(colors).let {
+                    background_ui = ColorDrawable(it)
+                    applyBackgroundColor_ui(it)
+                }
+            }
+            titleColor_ui(colors).let {
+                setTextColor_ui(it)
+                holder.view.input.setTextColor(it)
             }
             EmitChange_ui(mutableSetOf(image.ReInit()))
         }

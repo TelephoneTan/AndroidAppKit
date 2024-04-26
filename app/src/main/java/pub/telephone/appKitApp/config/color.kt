@@ -19,6 +19,7 @@ data class ColorsActivity<T : ColorValue>(
 }
 
 data class ColorsMain<T : ColorValue>(
+    @JvmField var background: T,
     @JvmField var text: T,
 ) : ColorConfig<ColorsMain<T>> {
     override fun copyConfig(): ColorsMain<T> {
@@ -66,6 +67,7 @@ class CommonColors(
                 text = common.text
             ),
             main = ColorsMain(
+                background = common.background,
                 text = common.text
             ),
         )

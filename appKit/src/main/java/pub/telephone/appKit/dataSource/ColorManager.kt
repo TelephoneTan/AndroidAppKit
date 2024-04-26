@@ -58,7 +58,7 @@ class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
         }
     }
 
-    fun of(night: Boolean? = null, common: Common? = null) = calc(night, common).of(this)
+    fun of(night: Boolean? = null, common: Common? = null) = calc(night, common).of(this) as R
 
     fun commit(night: Boolean? = null, common: Common? = null) {
         synchronized(this) {

@@ -49,6 +49,8 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
     }
 
+    private val defaultColorManager: ColorManager<*, *, *>? = MyApp.myColorManager
+
     protected open val myColorManager: ColorManager<*, *, *>? = null
 
     inner class State(
@@ -70,6 +72,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
         override fun color_ui(holder: MyActivity<CH, CD>.UI, colors: ColorConfig<*>) {
+            if (myColorManager != defaultColorManager) {
+                return
+            }
             backgroundColor_ui(colors).also {
                 holder.view.myActivityBackground.setBackgroundColor(it)
                 applyBackgroundColor_ui(it)
