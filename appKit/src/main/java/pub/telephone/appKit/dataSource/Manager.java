@@ -15,10 +15,10 @@ public class Manager<U> {
         cache.removeIf(c -> c.get() == null);
     }
 
-    public U Register(U u) {
+    public <T extends U> T Register(T t) {
         clean();
-        cache.add(new WeakReference<>(u));
-        return u;
+        cache.add(new WeakReference<>(t));
+        return t;
     }
 
     public Void CallOnAll(Function1<U, Void> fn) {

@@ -74,4 +74,13 @@ class CommonColors(
     }
 }
 
-val colorManager = ColorManager(CommonColors.instance, null as Colors<ICV>?, CommonColors::toColors)
+fun buildColorManager(): ColorManager<CommonColors, Colors<ColorValue>, Colors<ICV>> =
+    ColorManager.manager.Register(
+        ColorManager(
+            CommonColors.instance,
+            null as Colors<ICV>?,
+            CommonColors::toColors
+        )
+    )
+
+val colorManager = buildColorManager()

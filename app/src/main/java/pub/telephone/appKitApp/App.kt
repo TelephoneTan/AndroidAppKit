@@ -6,5 +6,5 @@ import pub.telephone.appKitApp.config.colorManager
 
 class App : MyApp() {
     override val colorManager_ui: ColorManager<*, *, *>
-        get() = ColorManager.manager.Register(colorManager)
+        get() = colorManager
 }

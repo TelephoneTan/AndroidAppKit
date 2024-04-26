@@ -14,13 +14,10 @@ import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.MyApp
 import pub.telephone.appKit.browser.BrowserState
 import pub.telephone.appKit.dataSource.ColorConfig
-import pub.telephone.appKit.dataSource.ColorManager
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
-import pub.telephone.appKit.dataSource.ICV
 import pub.telephone.appKit.dataSource.TagKey
-import pub.telephone.appKitApp.config.Colors
-import pub.telephone.appKitApp.config.CommonColors
+import pub.telephone.appKitApp.config.buildColorManager
 import pub.telephone.appKitApp.databinding.ActivityMainBinding
 import pub.telephone.javapromise.async.promise.Promise
 import java.lang.ref.WeakReference
@@ -51,12 +48,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
 
     data class ImagePack(val bitmap: Bitmap, @ColorInt val color: Int)
 
-    override val myColorManager =
-        ColorManager(CommonColors.instance, null as Colors<ICV>?, CommonColors::toColors)
-
-    init {
-        ColorManager.manager.Register(myColorManager)
-    }
+    override val myColorManager = buildColorManager()
 
     override fun backgroundColor_ui(colors: ColorConfig<*>): Int {
         return colors.of(myColorManager)!!.main.background.color
