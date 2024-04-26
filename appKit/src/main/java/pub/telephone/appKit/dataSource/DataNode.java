@@ -276,13 +276,13 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
 
         public void Bind(Set<Integer> changedBindingKeys, Function2<VH, D, Void> onSucceed) {
-            Bind(changedBindingKeys, onSucceed, null);
+            Bind(changedBindingKeys, (Boolean) null, onSucceed);
         }
 
         public void Bind(
                 Set<Integer> changedBindingKeys,
-                Function2<VH, D, Void> onSucceed,
-                Boolean stream
+                Boolean stream,
+                Function2<VH, D, Void> onSucceed
         ) {
             Bind(changedBindingKeys, null, onSucceed, stream);
         }
@@ -363,15 +363,19 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                         };
                         s[0] = lazy -> {
                             succeed(lazy.Cache, currentFetch);
+                            Runnable callAgain = () -> {
+                                if (stream == null || !stream) {
+                                    return;
+                                }
+                                again.invoke(5L);
+                            };
                             if (lazy.Latest == null) {
+                                callAgain.run();
                                 return null;
                             }
                             return lazy.Latest.Then(value -> {
                                 succeed(value, currentFetch);
-                                if (stream == null || !stream) {
-                                    return null;
-                                }
-                                again.invoke(5L);
+                                callAgain.run();
                                 return null;
                             });
                         };
