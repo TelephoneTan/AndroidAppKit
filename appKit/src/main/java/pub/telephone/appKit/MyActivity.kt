@@ -1,6 +1,7 @@
 package pub.telephone.appKit
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
@@ -306,5 +307,10 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     final override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         renderMenu_ui(menu)
         return true
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION")
+    final override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }
