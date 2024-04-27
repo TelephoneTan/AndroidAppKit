@@ -19,7 +19,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.ColorUtils
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -119,8 +118,12 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
 
         fun isLightColor(@ColorInt color: Int): Boolean {
-            return ColorUtils.calculateLuminance(color) >= 0.5
+            return MyApp.isLightColor(color)
         }
+    }
+
+    fun isLightColor(@ColorInt color: Int): Boolean {
+        return Companion.isLightColor(color)
     }
 
     @Suppress("FunctionName")

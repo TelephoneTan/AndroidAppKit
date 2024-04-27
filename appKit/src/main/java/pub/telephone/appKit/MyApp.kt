@@ -6,6 +6,8 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.ColorInt
+import androidx.core.graphics.ColorUtils
 import pub.telephone.appKit.dataSource.ColorManager
 import java.util.concurrent.atomic.AtomicReference
 
@@ -25,6 +27,14 @@ abstract class MyApp : Application() {
         private fun isNight(config: Configuration): Boolean {
             return config.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
         }
+
+        fun isLightColor(@ColorInt color: Int): Boolean {
+            return ColorUtils.calculateLuminance(color) >= 0.5
+        }
+    }
+
+    fun isLightColor(@ColorInt color: Int): Boolean {
+        return Companion.isLightColor(color)
     }
 
     final override fun onConfigurationChanged(newConfig: Configuration) {
