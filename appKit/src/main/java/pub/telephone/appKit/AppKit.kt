@@ -80,17 +80,17 @@ class AppKit {
             ) { options -> BitmapFactory.decodeByteArray(ba, 0, ba.size, options) }
         }
 
-        private fun getScreenSizePx(): Map.Entry<Int, Int> {
+        fun getScreenSizePx(): Map.Entry<Int, Int> {
             val metrics: DisplayMetrics = MyApp.resources.displayMetrics
             return AbstractMap.SimpleEntry(metrics.widthPixels, metrics.heightPixels)
         }
 
-        private fun getHalfVMinPx(): Int {
+        fun getHalfVMinPx(): Int {
             val (w, h) = getScreenSizePx()
             return (min(w.toDouble(), h.toDouble()) / 2).toInt()
         }
 
-        private fun getMagnifiedScreenSizePx(magnification: Float): Map.Entry<Int, Int> {
+        fun getMagnifiedScreenSizePx(magnification: Float): Map.Entry<Int, Int> {
             val (w, h) = getScreenSizePx()
             return AbstractMap.SimpleEntry(
                 (w * magnification).toInt(),
