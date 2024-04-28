@@ -75,7 +75,7 @@ class ColorManager<Common, T : ColorConfig<*>, R : ColorConfig<*>>(
             calc().also {
                 current = it
                 manager.CallOnAll { node ->
-                    node.EmitChange_ui(mutableSetOf(node.Color.SetResult(it)))
+                    node.EmitChange_ui(mutableSetOf(node.ColorBinding.SetResult(it)))
                     null
                 }
             }
