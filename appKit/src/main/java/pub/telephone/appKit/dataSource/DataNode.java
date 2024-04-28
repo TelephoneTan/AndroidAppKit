@@ -499,7 +499,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     protected final Binding<Object> init = emptyBinding();
-    private final Binding<ColorConfig<?>> color = emptyBinding(TagKey.Companion.getDataNodeColor());
+    public final Binding<ColorConfig<?>> ColorBinding = emptyBinding(TagKey.Companion.getDataNodeColor());
 
     protected @Nullable ColorManager<?, ?, ?> getMyColorManager() {
         return MyApp.Companion.getMyColorManager();
@@ -517,7 +517,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     final void wrapBind(Set<Integer> changedBindingKeys) {
-        color.Bind(changedBindingKeys, holder -> {
+        ColorBinding.Bind(changedBindingKeys, holder -> {
             ColorManager<?, ?, ?> manager = getMyColorManager();
             if (manager != null) {
                 color_ui(holder, manager.getCurrent());
