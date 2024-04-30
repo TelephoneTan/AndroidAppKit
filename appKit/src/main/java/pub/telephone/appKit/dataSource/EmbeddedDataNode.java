@@ -26,6 +26,21 @@ public abstract class EmbeddedDataNode<
 
         public final CH ChildHolder;
 
+        public static class ViewHolderParameters<CH extends DataViewHolder<?>> {
+            @NotNull
+            final DataViewHolderParameters.Inflater inflaterParameters;
+            @NotNull
+            final EmbeddedDataNodeAPI.ViewHolderCreator<CH> embeddedCreator;
+
+            public ViewHolderParameters(
+                    @NotNull DataViewHolderParameters.Inflater inflaterParameters,
+                    @NotNull EmbeddedDataNodeAPI.ViewHolderCreator<CH> embeddedCreator
+            ) {
+                this.inflaterParameters = inflaterParameters;
+                this.embeddedCreator = embeddedCreator;
+            }
+        }
+
         public ViewHolder(
                 @NonNull LayoutInflater inflater,
                 @Nullable ViewGroup parent,
@@ -38,11 +53,43 @@ public abstract class EmbeddedDataNode<
             //
             retrieveContainer().addView(ChildHolder.itemView);
         }
+
+        public ViewHolder(
+                @NotNull ViewHolderParameters<CH> parameters,
+                @NotNull Class<CT> containerBindingClass
+        ) {
+            this(
+                    parameters.inflaterParameters.inflater,
+                    parameters.inflaterParameters.container,
+                    containerBindingClass,
+                    parameters.embeddedCreator
+            );
+        }
     }
 
     protected abstract @NotNull TagKey loadKey();
 
     final CD childNode;
+
+    public static class EmbeddedDataNodeParameters<
+            VH,
+            CH extends DataViewHolder<?>,
+            INFO,
+            CD extends DataNode<CH>
+            > {
+        @NotNull
+        final DataNodeParameters<VH> node;
+        @NotNull
+        final EmbeddedDataNodeAPI.DataNodeCreator<CH, INFO, CD> embeddedCreator;
+
+        public EmbeddedDataNodeParameters(
+                @NotNull DataNodeParameters<VH> node,
+                @NotNull EmbeddedDataNodeAPI.DataNodeCreator<CH, INFO, CD> embeddedCreator
+        ) {
+            this.node = node;
+            this.embeddedCreator = embeddedCreator;
+        }
+    }
 
     public EmbeddedDataNode(
             @Nullable WeakReference<LifecycleOwner> lifecycleOwner,
@@ -59,6 +106,10 @@ public abstract class EmbeddedDataNode<
                 loadKey(),
                 RetrySharedTask.Simple(embeddedCreator::load)
         );
+    }
+
+    public EmbeddedDataNode(@NotNull EmbeddedDataNodeParameters<VH, CH, INFO, CD> parameters) {
+        this(parameters.node.lifecycleOwner, parameters.node.holder, parameters.embeddedCreator);
     }
 
     final Binding<Object> init = emptyBinding();

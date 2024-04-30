@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.List;
@@ -17,8 +19,12 @@ public abstract class DataSourceAdapter<
         > extends RecyclerView.Adapter<VH> {
     public final DataSource<VH, T> Source;
 
-    public DataSourceAdapter(WeakReference<LifecycleOwner> lifecycleOwner, View v) {
-        this.Source = new DataSource<>(v, this, lifecycleOwner);
+    public DataSourceAdapter(@NotNull WeakReference<LifecycleOwner> lifecycleOwner, @NotNull View v) {
+        this(new DataSource.DataSourceParameters(v, lifecycleOwner));
+    }
+
+    public DataSourceAdapter(@NotNull DataSource.DataSourceParameters parameters) {
+        this.Source = new DataSource<>(parameters, this);
     }
 
     protected void beforeBindViewHolder_ui(T node) {

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Message
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -13,7 +12,6 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebViewClient
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.LifecycleOwner
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewAssetLoader.AssetsPathHandler
 import pub.telephone.appKit.MyApp
@@ -21,18 +19,16 @@ import pub.telephone.appKit.dataSource.DataNode
 import pub.telephone.appKit.dataSource.DataViewHolder
 import pub.telephone.appKit.dataSource.TagKey
 import pub.telephone.appKit.databinding.BrowserBinding
-import java.lang.ref.WeakReference
 
 class BrowserState(
-    lifecycleOwner: WeakReference<LifecycleOwner>?,
-    holder: UI?,
+    params: DataNodeParameters<UI>,
     private val initURL: String,
     private val initReferer: String? = null,
     @Suppress("PrivatePropertyName")
     private val setTitle_ui: ((title: String) -> Unit)? = null,
-) : DataNode<BrowserState.UI>(lifecycleOwner, holder) {
-    class UI(inflater: LayoutInflater, container: ViewGroup?) :
-        DataViewHolder<BrowserBinding>(BrowserBinding::class.java, inflater, container)
+) : DataNode<BrowserState.UI>(params) {
+    class UI(params: DataViewHolderParameters.Inflater) :
+        DataViewHolder<BrowserBinding>(params, BrowserBinding::class.java)
 
     companion object {
         private val assetLoader by lazy {

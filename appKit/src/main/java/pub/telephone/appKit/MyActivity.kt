@@ -10,7 +10,6 @@ import android.os.PersistableBundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,11 +24,12 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.forEach
-import androidx.lifecycle.LifecycleOwner
 import pub.telephone.appKit.dataSource.ColorConfig
 import pub.telephone.appKit.dataSource.ColorManager
 import pub.telephone.appKit.dataSource.DataNode
+import pub.telephone.appKit.dataSource.DataNode.DataNodeParameters
 import pub.telephone.appKit.dataSource.DataViewHolder
+import pub.telephone.appKit.dataSource.DataViewHolder.DataViewHolderParameters.Inflater
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
 import pub.telephone.appKit.dataSource.TagKey
@@ -40,9 +40,9 @@ private typealias MyActivityINFO = Any?
 
 abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     : AppCompatActivity(), EmbeddedDataNodeAPI.All<CH, MyActivityINFO, CD> {
-    inner class UI(inflater: LayoutInflater, parent: ViewGroup?) :
+    inner class UI(params: Inflater) :
         EmbeddedDataNode.ViewHolder<MyActivityBinding, CH>(
-            inflater, parent, MyActivityBinding::class.java, this
+            ViewHolderParameters(params, this), MyActivityBinding::class.java
         ) {
         override fun retrieveContainer(): ViewGroup {
             return view.myActivityContent
@@ -54,10 +54,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     protected open val myColorManager: ColorManager<*, *, *>? = null
 
     inner class State(
-        lifecycleOwner: WeakReference<LifecycleOwner>?,
-        holder: MyActivity<CH, CD>.UI?
+        params: DataNodeParameters<MyActivity<CH, CD>.UI>
     ) : EmbeddedDataNode<CH, UI, MyActivityINFO, CD>(
-        lifecycleOwner, holder, this
+        EmbeddedDataNodeParameters(params, this)
     ) {
         init {
             watchColor()
@@ -207,7 +206,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
             }
         }
         beforeCreateChild_ui()
-        val holder = UI(layoutInflater, null)
+        val holder = UI(Inflater(layoutInflater, null))
         this.holder = holder
         ViewCompat.setOnApplyWindowInsetsListener(holder.itemView, onApplyWindowInsetsListener)
         insetsController = WindowCompat.getInsetsController(window, holder.itemView)
@@ -220,7 +219,7 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         }
         title = title_ui
         setContentView(holder.itemView)
-        State(WeakReference(this), holder).EmitChange_ui(null)
+        State(DataNodeParameters(WeakReference(this), holder)).EmitChange_ui(null)
         //
         onCreated_ui(savedInstanceState)
     }

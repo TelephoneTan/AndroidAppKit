@@ -40,6 +40,10 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.12"
     }
 }
 //
@@ -76,6 +80,24 @@ publishing {
 }
 
 dependencies {
+
+    val composeBom = platform(libs.compose.bom)
+    api(composeBom)
+    androidTestApi(composeBom)
+
+    // Compose Material Design 3
+    api(libs.compose.material3)
+
+    // Compose Android Studio Preview support
+    api(libs.compose.ui.tooling.preview)
+    debugApi(libs.compose.ui.tooling)
+
+    // Compose UI Tests
+    androidTestApi(libs.compose.ui.test.junit4)
+    debugApi(libs.compose.ui.test.manifest)
+
+    // Compose integration with activities
+    api(libs.activity.compose)
 
     implementation(kotlin("reflect"))
     api(libs.http.request)

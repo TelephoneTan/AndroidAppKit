@@ -14,6 +14,8 @@ import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.MyApp
 import pub.telephone.appKit.browser.BrowserState
 import pub.telephone.appKit.dataSource.ColorConfig
+import pub.telephone.appKit.dataSource.DataNode.DataNodeParameters
+import pub.telephone.appKit.dataSource.DataViewHolder.DataViewHolderParameters.Inflater
 import pub.telephone.appKit.dataSource.EmbeddedDataNode
 import pub.telephone.appKit.dataSource.EmbeddedDataNodeAPI
 import pub.telephone.appKit.dataSource.TagKey
@@ -37,8 +39,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
                 holder: BrowserState.UI?
             ): BrowserState {
                 return BrowserState(
-                    lifecycleOwner,
-                    holder,
+                    DataNodeParameters(lifecycleOwner, holder),
                     "https://www.apple.com.cn/"
                 ) {
                     title = it
@@ -58,12 +59,9 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         return colors.of(myColorManager)!!.main.text.color
     }
 
-    inner class DataNode(
-        lifecycleOwner: WeakReference<LifecycleOwner>?,
-        holder: MainActivity.ViewHolder?
-    ) :
+    inner class DataNode(params: DataNodeParameters<MainActivity.ViewHolder>) :
         EmbeddedDataNode<BrowserState.UI, ViewHolder, MainActivityINFO, BrowserState>(
-            lifecycleOwner, holder, browserCreator
+            EmbeddedDataNodeParameters(params, browserCreator)
         ),
         EmbeddedDataNodeAPI.DataNodeCreator<BrowserState.UI, MainActivityINFO, BrowserState> by browserCreator {
         override fun loadKey(): TagKey {
@@ -137,7 +135,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
                 inflater: LayoutInflater,
                 container: ViewGroup?
             ): BrowserState.UI {
-                return BrowserState.UI(inflater, container)
+                return BrowserState.UI(Inflater(inflater, container))
             }
         }
     }
@@ -153,7 +151,7 @@ class MainActivity : Activity<MainActivity.ViewHolder, MainActivity.DataNode>() 
         lifecycleOwner: WeakReference<LifecycleOwner>?,
         holder: ViewHolder?
     ): DataNode {
-        return DataNode(lifecycleOwner, holder)
+        return DataNode(DataNodeParameters(lifecycleOwner, holder))
     }
 
     override fun handleAndroidHome_ui() {

@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -26,15 +28,34 @@ public class DataSource<
     final RecyclerView.Adapter<?> adapter;
     final WeakReference<LifecycleOwner> lifecycleOwner;
 
+    public static class DataSourceParameters {
+        @NotNull
+        final View view;
+        @NotNull
+        final WeakReference<LifecycleOwner> lifecycleOwner;
+
+        public DataSourceParameters(
+                @NotNull View view,
+                @NotNull WeakReference<LifecycleOwner> lifecycleOwner
+        ) {
+            this.view = view;
+            this.lifecycleOwner = lifecycleOwner;
+        }
+    }
+
     public DataSource(
-            View view,
-            RecyclerView.Adapter<?> adapter,
-            WeakReference<LifecycleOwner> lifecycleOwner
+            @NotNull View view,
+            @NotNull RecyclerView.Adapter<?> adapter,
+            @NotNull WeakReference<LifecycleOwner> lifecycleOwner
     ) {
         view.post(() -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this));
         this.view = new WeakReference<>(view);
         this.adapter = adapter;
         this.lifecycleOwner = lifecycleOwner;
+    }
+
+    public DataSource(@NotNull DataSourceParameters parameters, @NotNull RecyclerView.Adapter<?> adapter) {
+        this(parameters.view, adapter, parameters.lifecycleOwner);
     }
 
     private void initItem(T item) {
