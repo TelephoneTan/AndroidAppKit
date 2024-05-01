@@ -156,26 +156,26 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
     }
 
-    protected static class result<T> {
-        private enum statusType {
+    public static class Result<T> {
+        public enum StatusType {
             Init,
             Success,
         }
 
-        final statusType status;
-        final T value;
+        public final StatusType status;
+        public final T value;
 
-        private result(statusType status, T value) {
+        private Result(StatusType status, T value) {
             this.status = status;
             this.value = value;
         }
 
-        public static <T> result<T> Init() {
-            return new result<>(statusType.Init, null);
+        public static <T> Result<T> Init() {
+            return new Result<>(StatusType.Init, null);
         }
 
-        public static <T> result<T> Succeed(T value) {
-            return new result<>(statusType.Success, value);
+        public static <T> Result<T> Succeed(T value) {
+            return new Result<>(StatusType.Success, value);
         }
     }
 
@@ -196,7 +196,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         final Integer initKey;
         final PromiseJob<LazyRes<D>> fetchJob;
         Promise<?> fetchPromise;
-        result<D> data;
+        Result<D> data;
 
         public Binding(Integer key, Integer initKey, PromiseJob<LazyRes<D>> fetchJob) {
             this.key = key;
@@ -257,13 +257,13 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 if (fetchPromise != currentFetch) {
                     return;
                 }
-                data = result.Succeed(value);
+                data = Result.Succeed(value);
                 EmitChange_ui(Collections.singleton(key));
             }));
         }
 
         public Integer SetResult(D result) {
-            data = DataNode.result.Succeed(result);
+            data = Result.Succeed(result);
             return key;
         }
 
@@ -305,11 +305,11 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 if (data == null) {
                     return null;
                 }
-                if (data.status == result.statusType.Init) {
+                if (data.status == Result.StatusType.Init) {
                     if (init != null) {
                         init.invoke(holder);
                     }
-                } else if (data.status == result.statusType.Success) {
+                } else if (data.status == Result.StatusType.Success) {
                     if (onSucceed != null) {
                         onSucceed.invoke(holder, data.value);
                     }
@@ -319,7 +319,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             };
             whenAlive(fetchPromise, holder -> {
                 if (changedBindingKeys == null || changedBindingKeys.isEmpty() || (initKey != null && changedBindingKeys.contains(initKey))) {
-                    data = result.Init();
+                    data = Result.Init();
                     if (key != null && fetchJob != null) {
                         Promise<LazyRes<D>> currentFetch = new Promise<>(fetchJob);
                         fetchPromise = currentFetch;
