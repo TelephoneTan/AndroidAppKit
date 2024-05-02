@@ -15,3 +15,5 @@ fun <RESULT> DataNode<*>.processed(builder: ProcessFunc<RESULT>) = object : Prom
 
 fun DataNode<*>.worked(builder: WorkFunc) = process(builder.toProcessFunc())
 fun <RESULT> DataNode<*>.promised(job: PromiseJob<RESULT>) = process { promise { job() } }
+
+internal fun <T> mutableStateOf(value: T) = androidx.compose.runtime.mutableStateOf(value)

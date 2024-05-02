@@ -4,6 +4,8 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.compose.runtime.MutableState;
+import androidx.compose.runtime.State;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -224,6 +226,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         final Integer key;
         final Integer initKey;
         final PromiseJob<LazyRes<D>> fetchJob;
+        final MutableState<Result<D>> state = DataNodeKt.mutableStateOf(Result.Init());
         Promise<?> fetchPromise;
         Result<D> data;
 
@@ -253,11 +256,11 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return true;
         }
 
-        protected void whenAlive(Promise<?> currentFetch, Function1<VH, Void> runnable) {
+        protected <T> @Nullable T whenAlive(Promise<?> currentFetch, Function1<VH, T> runnable) {
             if (!alive(currentFetch)) {
-                return;
+                return null;
             }
-            DataNode.this.whenAlive(runnable);
+            return DataNode.this.whenAlive(runnable);
         }
 
         protected void whenAlive(Promise<?> currentFetch, Runnable runnable) {
@@ -287,44 +290,68 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     return;
                 }
                 data = Result.Succeed(value);
+                state.setValue(data);
                 EmitChange_ui(Collections.singleton(key));
             }));
         }
 
         public Integer SetResult(D result) {
             data = Result.Succeed(result);
+            state.setValue(data);
             return key;
         }
 
         public Integer ReInit() {
+            data = Result.Init();
+            state.setValue(data);
             return initKey;
         }
 
-        public void Bind(Set<Integer> changedBindingKeys, Function1<VH, Void> init) {
-            Bind(changedBindingKeys, init, null);
+        public @Nullable State<Result<D>> Bind(Set<Integer> changedBindingKeys, Function1<VH, Void> init) {
+            return Bind(changedBindingKeys, init, null);
         }
 
-        public void Bind(Set<Integer> changedBindingKeys, Function2<VH, D, Void> onSucceed) {
-            Bind(changedBindingKeys, (Boolean) null, onSucceed);
+        public @Nullable State<Result<D>> Bind(Set<Integer> changedBindingKeys, Function2<VH, D, Void> onSucceed) {
+            return Bind(changedBindingKeys, (Boolean) null, onSucceed);
         }
 
-        public void Bind(
+        public @Nullable State<Result<D>> Bind(
                 Set<Integer> changedBindingKeys,
                 Boolean stream,
                 Function2<VH, D, Void> onSucceed
         ) {
-            Bind(changedBindingKeys, null, onSucceed, stream);
+            return Bind(changedBindingKeys, null, onSucceed, stream);
         }
 
-        public void Bind(
+        public @Nullable State<Result<D>> Bind(
                 Set<Integer> changedBindingKeys,
                 Function1<VH, Void> init,
                 Function2<VH, D, Void> onSucceed
         ) {
-            Bind(changedBindingKeys, init, onSucceed, null);
+            return Bind(changedBindingKeys, init, onSucceed, null);
         }
 
-        public void Bind(
+        public @Nullable State<Result<D>> Bind(
+                Set<Integer> changedBindingKeys,
+                Function1<VH, Void> init,
+                Function2<VH, D, Void> onSucceed,
+                Boolean stream
+        ) {
+            return Bind(fetchJob, changedBindingKeys, init, onSucceed, stream);
+        }
+
+        public @Nullable State<Result<D>> Bind(
+                RetrySharedTask<D, ?> task,
+                Set<Integer> changedBindingKeys,
+                Function1<VH, Void> init,
+                Function2<VH, D, Void> onSucceed,
+                Boolean stream
+        ) {
+            return Bind(buildFetchJob(task), changedBindingKeys, init, onSucceed, stream);
+        }
+
+        public @Nullable State<Result<D>> Bind(
+                PromiseJob<LazyRes<D>> fetchJob,
                 Set<Integer> changedBindingKeys,
                 Function1<VH, Void> init,
                 Function2<VH, D, Void> onSucceed,
@@ -346,9 +373,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 data = null;
                 return null;
             };
-            whenAlive(fetchPromise, holder -> {
+            return whenAlive(fetchPromise, holder -> {
                 if (changedBindingKeys == null || changedBindingKeys.isEmpty() || (initKey != null && changedBindingKeys.contains(initKey))) {
                     data = Result.Init();
+                    state.setValue(data);
                     if (key != null && fetchJob != null) {
                         Promise<LazyRes<D>> currentFetch = new Promise<>(fetchJob);
                         fetchPromise = currentFetch;
@@ -411,10 +439,13 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                         currentFetch.Then(s[0]).Catch(f[0]);
                     }
                     renderer.invoke(holder);
+                    return state;
                 } else if (key != null && changedBindingKeys.contains(key)) {
                     renderer.invoke(holder);
+                    return null;
+                } else {
+                    return null;
                 }
-                return null;
             });
         }
     }
@@ -478,15 +509,15 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         return true;
     }
 
-    protected void whenAlive(Function1<VH, Void> runnable) {
+    protected <T> @Nullable T whenAlive(Function1<VH, T> runnable) {
         if (!alive()) {
-            return;
+            return null;
         }
         VH currentBinding = binding.get();
         if (currentBinding == null) {
-            return;
+            return null;
         }
-        runnable.invoke(currentBinding);
+        return runnable.invoke(currentBinding);
     }
 
     protected void whenVisible(Function1<VH, Void> runnable) {
