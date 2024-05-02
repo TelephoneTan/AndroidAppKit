@@ -546,7 +546,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 return null;
             });
         } else if (holder != null) {
-            bind(keys);
+            bind(holder, keys);
         }
     }
 
@@ -567,14 +567,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         });
     }
 
-    final void bind(Set<Integer> changedBindingKeys) {
-        bind(holder, changedBindingKeys);
-    }
-
-    final void bind(VH holder, Set<Integer> changedBindingKeys) {
-        if (holder == null) {
-            return;
-        }
+    final void bind(@NotNull VH holder, Set<Integer> changedBindingKeys) {
         holder.itemView.setTag(TagKey.Companion.getDataNode().Key, DataNode.this);
         binding = new WeakReference<>(holder);
         wrapBind(changedBindingKeys);
