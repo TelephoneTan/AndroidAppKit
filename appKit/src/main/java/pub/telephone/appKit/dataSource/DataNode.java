@@ -29,7 +29,6 @@ import pub.telephone.javapromise.async.promise.PromiseFulfilledListener;
 import pub.telephone.javapromise.async.promise.PromiseJob;
 import pub.telephone.javapromise.async.promise.PromiseRejectedListener;
 import pub.telephone.javapromise.async.promise.PromiseStatefulFulfilledListener;
-import pub.telephone.javapromise.async.task.shared.SharedTask;
 
 public abstract class DataNode<VH extends DataViewHolder<?>> {
     public static class RetrySharedTask<T, M> {
@@ -58,11 +57,26 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         private static final Throwable _RETRY = new Throwable();
         final PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test;
         final PromiseStatefulFulfilledListener<M, Object> retry;
-        final SharedTask<LazyRes<T>> task;
+        final Function2<
+                PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>>,
+                PromiseStatefulFulfilledListener<M, Object>,
+                PromiseJob<LazyRes<T>>> task;
+
+        private static <M, T> PromiseFulfilledListener<Reference<M, T>, Token<T>> buildStatelessTest(
+                Function0<Promise<T>> job
+        ) {
+            return mid -> job.invoke().Then(res -> mid.Set(null, res));
+        }
+
+        private static <M, T> PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> toTest(
+                PromiseFulfilledListener<Reference<M, T>, Token<T>> statelessTest
+        ) {
+            return (v, promiseState) -> statelessTest.OnFulfilled(v);
+        }
 
         public static <T> RetrySharedTask<T, Object> Simple(Function0<Promise<T>> job) {
             return new RetrySharedTask<>(
-                    mid -> job.invoke().Then(res -> mid.Set(null, res)),
+                    buildStatelessTest(job),
                     null
             );
         }
@@ -72,7 +86,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 PromiseFulfilledListener<M, Object> retry
         ) {
             this(
-                    (v, promiseState) -> test.OnFulfilled(v),
+                    toTest(test),
                     (v, promiseState) -> retry.OnFulfilled(v)
             );
         }
@@ -103,7 +117,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         ) {
             this.test = test;
             this.retry = retry;
-            this.task = new SharedTask<>((rs, re) -> {
+            this.task = (test1, retry1) -> (rs, re) -> {
                 AtomicReference<LazyRes<T>> res = new AtomicReference<>();
                 Reference<M, T> mid = new Reference<>();
                 Promise<Reference<M, T>> provideMid = new Promise<>((rs1, re1) -> rs1.Resolve(mid));
@@ -111,10 +125,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                         new Promise<>((rs1, re1) -> rs1.Resolve(midValue));
                 Function1<M, Promise<T>> generateLazyFetch = midValue ->
                         provideMidValue.invoke(midValue)
-                                .Then(retry)
-                                .Then(o -> provideMid.Then(test).Then(r -> r.value));
+                                .Then(retry1)
+                                .Then(o -> provideMid.Then(test1).Then(r -> r.value));
                 Function1<T, LazyRes<T>> generateLazyResFromCache = cache ->
-                        retry == null ?
+                        retry1 == null ?
                                 new LazyRes<>(cache, null) :
                                 new LazyRes<>(
                                         cache,
@@ -122,13 +136,13 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                                                 generateLazyFetch.invoke(mid.value) :
                                                 null
                                 );
-                rs.Resolve(provideMid.Then(test)
+                rs.Resolve(provideMid.Then(test1)
                         .Then(r -> {
                             res.set(generateLazyResFromCache.invoke(r.value));
                             return null;
                         })
                         .Catch(throwable -> {
-                            if (throwable != _RETRY || retry == null) {
+                            if (throwable != _RETRY || retry1 == null) {
                                 throw throwable;
                             }
                             Promise<T> lazyFetch = generateLazyFetch.invoke(mid.value);
@@ -138,11 +152,14 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                             });
                         })
                         .Then(x -> res.get()));
-            });
+            };
         }
 
-        public Promise<LazyRes<T>> Do() {
-            return this.task.Do();
+        public Promise<LazyRes<T>> Do(
+                PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
+                PromiseStatefulFulfilledListener<M, Object> retry
+        ) {
+            return new Promise<>(this.task.invoke(test, retry));
         }
     }
 
@@ -187,8 +204,12 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
     }
 
+    private static <D, M> PromiseJob<LazyRes<D>> buildFetchJob(RetrySharedTask<D, M> task) {
+        return (rs, re) -> rs.Resolve(task.Do(task.test, task.retry));
+    }
+
     protected <D> Binding<D> bindTask(TagKey key, RetrySharedTask<D, ?> task) {
-        return new Binding<>(key.Key, key.InitKey, (rs, re) -> rs.Resolve(task.Do()));
+        return new Binding<>(key.Key, key.InitKey, buildFetchJob(task));
     }
 
     protected <D> Binding<D> emptyBinding(@NotNull TagKey key) {
