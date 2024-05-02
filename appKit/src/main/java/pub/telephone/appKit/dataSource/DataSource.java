@@ -3,6 +3,7 @@ package pub.telephone.appKit.dataSource;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -99,6 +100,13 @@ public class DataSource<
     }
 
     private void post(Runnable runnable, boolean strict) {
+        LifecycleOwner lifecycleOwner = this.lifecycleOwner.get();
+        if (lifecycleOwner == null) {
+            return;
+        }
+        if (!lifecycleOwner.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.INITIALIZED)) {
+            return;
+        }
         View view = this.view.get();
         if (view == null) {
             return;
