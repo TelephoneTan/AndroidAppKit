@@ -170,6 +170,14 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             this.value = value;
         }
 
+        public final boolean isInit() {
+            return this.status == StatusType.Init;
+        }
+
+        public final boolean isSuccess() {
+            return this.status == StatusType.Success;
+        }
+
         public static <T> Result<T> Init() {
             return new Result<>(StatusType.Init, null);
         }
