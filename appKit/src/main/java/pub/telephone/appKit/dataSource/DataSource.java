@@ -210,7 +210,7 @@ public class DataSource<
             Runnable... after
     ) {
         post(() -> {
-            Map.Entry<Set<Integer>, Map.Entry<Integer, List<T>>> changed = changer.invoke(source);
+            Map.Entry<Set<Integer>, Map.Entry<Integer, List<T>>> changed = changer.invoke(GetAll());
             if (changed == null) {
                 return;
             }
@@ -267,7 +267,7 @@ public class DataSource<
 
     public final void Change(Function1<List<T>, List<Map.Entry<T, Set<Integer>>>> changer, Runnable... after) {
         post(() -> {
-            List<Map.Entry<T, Set<Integer>>> changed = changer.invoke(source);
+            List<Map.Entry<T, Set<Integer>>> changed = changer.invoke(GetAll());
             if (changed == null) {
                 return;
             }
@@ -285,14 +285,26 @@ public class DataSource<
         });
     }
 
-    public final void ChangeAll(Function1<List<T>, Boolean> changer, Runnable... after) {
+    public final void ShuffleAll(Function1<List<T>, List<T>> shuffler, Runnable... after) {
         post(() -> {
-            Boolean changeConfirmed = changer.invoke(source);
-            if (changeConfirmed == null || !changeConfirmed) {
+            List<T> res = shuffler.invoke(GetAll());
+            if (res == null) {
                 return;
             }
+            source.clear();
+            source.addAll(res);
             adapter.notifyDataSetChanged();
             postAfter(after);
         });
+    }
+
+    public final void ChangeAll(Function1<List<T>, Boolean> changer, Runnable... after) {
+        ShuffleAll(origin -> {
+            Boolean confirmed = changer.invoke(origin);
+            if (confirmed == null || !confirmed) {
+                return null;
+            }
+            return origin;
+        }, after);
     }
 }
