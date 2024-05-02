@@ -25,7 +25,7 @@ public class DataSource<
         > {
     private final List<T> source = new ArrayList<>();
     final WeakReference<View> view;
-    final RecyclerView.Adapter<?> adapter;
+    final DataAdapter<VH, T> adapter;
     final WeakReference<LifecycleOwner> lifecycleOwner;
 
     public static class DataSourceParameters {
@@ -45,7 +45,7 @@ public class DataSource<
 
     public DataSource(
             @NotNull View view,
-            @NotNull RecyclerView.Adapter<?> adapter,
+            @NotNull DataAdapter<VH, T> adapter,
             @NotNull WeakReference<LifecycleOwner> lifecycleOwner
     ) {
         view.post(() -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this));
@@ -54,7 +54,7 @@ public class DataSource<
         this.lifecycleOwner = lifecycleOwner;
     }
 
-    public DataSource(@NotNull DataSourceParameters parameters, @NotNull RecyclerView.Adapter<?> adapter) {
+    public DataSource(@NotNull DataSourceParameters parameters, @NotNull DataAdapter<VH, T> adapter) {
         this(parameters.view, adapter, parameters.lifecycleOwner);
     }
 
