@@ -3,6 +3,7 @@ package pub.telephone.appKit.dataSource;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,22 +27,52 @@ public class DataSource<
         T extends DataNode<VH>
         > {
     private final List<T> source = new ArrayList<>();
-    final WeakReference<View> view;
+    final @Nullable WeakReference<View> view;
     final DataAdapter<VH, T> adapter;
     final WeakReference<LifecycleOwner> lifecycleOwner;
 
     public static class DataSourceParameters {
-        @NotNull
+        public static class Life {
+            @NotNull
+            final WeakReference<LifecycleOwner> lifecycleOwner;
+
+            public Life(@NotNull WeakReference<LifecycleOwner> lifecycleOwner) {
+                this.lifecycleOwner = lifecycleOwner;
+            }
+        }
+
+        @Nullable
         final View view;
         @NotNull
-        final WeakReference<LifecycleOwner> lifecycleOwner;
+        final Life life;
 
         public DataSourceParameters(
                 @NotNull View view,
                 @NotNull WeakReference<LifecycleOwner> lifecycleOwner
         ) {
             this.view = view;
-            this.lifecycleOwner = lifecycleOwner;
+            this.life = new Life(lifecycleOwner);
+        }
+
+        DataSourceParameters(@NotNull Life life) {
+            this.view = null;
+            this.life = life;
+        }
+    }
+
+    private DataSource(
+            @NotNull WeakReference<LifecycleOwner> lifecycleOwner,
+            @NotNull DataAdapter<VH, T> adapter,
+            @Nullable View view
+    ) {
+        this.view = view == null ? null : new WeakReference<>(view);
+        this.adapter = adapter;
+        this.lifecycleOwner = lifecycleOwner;
+        //
+        if (view != null) {
+            MyApp.Companion.post(
+                    () -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this)
+            );
         }
     }
 
@@ -50,14 +81,11 @@ public class DataSource<
             @NotNull DataAdapter<VH, T> adapter,
             @NotNull WeakReference<LifecycleOwner> lifecycleOwner
     ) {
-        MyApp.Companion.post(() -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this));
-        this.view = new WeakReference<>(view);
-        this.adapter = adapter;
-        this.lifecycleOwner = lifecycleOwner;
+        this(lifecycleOwner, adapter, view);
     }
 
     public DataSource(@NotNull DataSourceParameters parameters, @NotNull DataAdapter<VH, T> adapter) {
-        this(parameters.view, adapter, parameters.lifecycleOwner);
+        this(parameters.life.lifecycleOwner, adapter, parameters.view);
     }
 
     private void initItem(T item) {
@@ -107,20 +135,24 @@ public class DataSource<
         if (!lifecycleOwner.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.INITIALIZED)) {
             return;
         }
-        View view = this.view.get();
-        if (view == null) {
-            return;
+        if (this.view != null) {
+            View view = this.view.get();
+            if (view == null) {
+                return;
+            }
+            MyApp.Companion.post(() -> {
+                if (view.getTag(TagKey.Companion.getDataSource().Key) != DataSource.this) {
+                    return;
+                }
+                if (isViewChanging(view, strict)) {
+                    post(runnable, strict);
+                    return;
+                }
+                runnable.run();
+            });
+        } else {
+            MyApp.Companion.post(runnable);
         }
-        MyApp.Companion.post(() -> {
-            if (view.getTag(TagKey.Companion.getDataSource().Key) != DataSource.this) {
-                return;
-            }
-            if (isViewChanging(view, strict)) {
-                post(runnable, strict);
-                return;
-            }
-            runnable.run();
-        });
     }
 
     private void post(Runnable runnable) {
@@ -273,7 +305,7 @@ public class DataSource<
         RemoveAndRangeInsert(nodes -> addPositionInfo(null, changer.invoke(nodes)), after);
     }
 
-    public final void Change(Function1<List<T>, List<Map.Entry<T, Set<Integer>>>> changer, Runnable... after) {
+    final void change(Function1<List<T>, List<Map.Entry<T, Set<Integer>>>> changer, Runnable... after) {
         post(() -> {
             List<Map.Entry<T, Set<Integer>>> changed = changer.invoke(GetAll());
             if (changed == null) {

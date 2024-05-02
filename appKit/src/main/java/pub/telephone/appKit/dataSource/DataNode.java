@@ -469,7 +469,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
     public final void EmitChange_ui(Set<Integer> keys) {
         if (source != null) {
-            source.Change(x -> {
+            if (source.view == null) {
+                return;
+            }
+            source.change(x -> {
                 View v = source.view.get();
                 if (v == null) {
                     return null;
@@ -498,7 +501,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         if (source == null) {
             return;
         }
-        source.Change(all -> {
+        source.change(all -> {
             onAll.invoke(all);
             return null;
         });
