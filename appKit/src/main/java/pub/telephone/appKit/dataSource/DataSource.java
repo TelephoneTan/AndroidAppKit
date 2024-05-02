@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import kotlin.jvm.functions.Function1;
+import pub.telephone.appKit.MyApp;
 
 public class DataSource<
         VH extends DataViewHolder<?>,
@@ -48,7 +49,7 @@ public class DataSource<
             @NotNull DataAdapter<VH, T> adapter,
             @NotNull WeakReference<LifecycleOwner> lifecycleOwner
     ) {
-        view.post(() -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this));
+        MyApp.Companion.post(() -> view.setTag(TagKey.Companion.getDataSource().Key, DataSource.this));
         this.view = new WeakReference<>(view);
         this.adapter = adapter;
         this.lifecycleOwner = lifecycleOwner;
@@ -102,7 +103,7 @@ public class DataSource<
         if (view == null) {
             return;
         }
-        view.post(() -> {
+        MyApp.Companion.post(() -> {
             if (view.getTag(TagKey.Companion.getDataSource().Key) != DataSource.this) {
                 return;
             }
