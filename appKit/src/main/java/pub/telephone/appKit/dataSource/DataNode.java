@@ -358,6 +358,9 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 Boolean stream
         ) {
             Function1<VH, Void> renderer = holder -> {
+                if (holder == null) {
+                    return null;
+                }
                 if (data == null) {
                     return null;
                 }
@@ -452,8 +455,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
     protected volatile WeakReference<LifecycleOwner> lifecycleOwner;
     DataSource<VH, DataNode<VH>> source;
-    volatile VH holder;
-    WeakReference<VH> binding = new WeakReference<>(null);
+    @Nullable
+    final VH holder;
+    @Nullable
+    WeakReference<VH> binding = null;
     protected int position;
 
     public static class DataNodeParameters<VH> {
@@ -488,9 +493,11 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         if (!lifecycleOwner.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.INITIALIZED)) {
             return false;
         }
-        VH currentBinding = binding.get();
-        if (currentBinding == null || currentBinding.itemView.getTag(TagKey.Companion.getDataNode().Key) != DataNode.this) {
-            return false;
+        if (binding != null) {
+            VH currentBinding = binding.get();
+            if (currentBinding == null || currentBinding.itemView.getTag(TagKey.Companion.getDataNode().Key) != DataNode.this) {
+                return false;
+            }
         }
         return true;
     }
@@ -513,9 +520,12 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         if (!alive()) {
             return null;
         }
-        VH currentBinding = binding.get();
-        if (currentBinding == null) {
-            return null;
+        VH currentBinding = null;
+        if (binding != null) {
+            currentBinding = binding.get();
+            if (currentBinding == null) {
+                return null;
+            }
         }
         return runnable.invoke(currentBinding);
     }
