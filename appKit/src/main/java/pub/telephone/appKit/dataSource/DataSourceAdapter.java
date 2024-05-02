@@ -16,8 +16,14 @@ import java.util.Set;
 public abstract class DataSourceAdapter<
         VH extends DataViewHolder<?>,
         T extends DataNode<VH>
-        > extends RecyclerView.Adapter<VH> {
+        > extends RecyclerView.Adapter<VH> implements DataAdapter<VH, T> {
     public final DataSource<VH, T> Source;
+
+    @NonNull
+    @Override
+    public final DataSource<VH, T> getSource() {
+        return Source;
+    }
 
     public DataSourceAdapter(@NotNull WeakReference<LifecycleOwner> lifecycleOwner, @NotNull View v) {
         this(new DataSource.DataSourceParameters(v, lifecycleOwner));
@@ -61,7 +67,8 @@ public abstract class DataSourceAdapter<
         return Source.Size();
     }
 
-    protected int getItemViewType(T node) {
+    @Override
+    public int getItemViewType(@NonNull T node) {
         return 0;
     }
 
