@@ -26,7 +26,10 @@ import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import pub.telephone.appKit.MyApp;
 import pub.telephone.javapromise.async.Async;
+import pub.telephone.javapromise.async.kpromise.PromiseCancelledBroadcast;
+import pub.telephone.javapromise.async.kpromise.PromiseScope;
 import pub.telephone.javapromise.async.promise.Promise;
+import pub.telephone.javapromise.async.promise.PromiseCancelledBroadcaster;
 import pub.telephone.javapromise.async.promise.PromiseFulfilledListener;
 import pub.telephone.javapromise.async.promise.PromiseJob;
 import pub.telephone.javapromise.async.promise.PromiseRejectedListener;
@@ -460,6 +463,18 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     @Nullable
     WeakReference<VH> binding = null;
     protected int position;
+    final PromiseCancelledBroadcaster broadcaster = new PromiseCancelledBroadcaster();
+    final PromiseScope scope = new PromiseScope() {
+        @NonNull
+        @Override
+        public PromiseCancelledBroadcast getScopeCancelledBroadcast() {
+            return broadcaster;
+        }
+    };
+
+    protected PromiseScope currentScope() {
+        return scope;
+    }
 
     public static class DataNodeParameters<VH> {
         @Nullable
