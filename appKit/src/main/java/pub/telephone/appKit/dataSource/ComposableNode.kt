@@ -70,7 +70,7 @@ abstract class ComposableNode(params: DataNodeParameters.State) :
 
     @Composable
     @SuppressLint("ComposableNaming")
-    abstract fun __Content__()
+    protected abstract fun __Content__()
 
     @Composable
     fun Content() {
