@@ -32,11 +32,11 @@ public class DataSource<
     final WeakReference<LifecycleOwner> lifecycleOwner;
 
     public static class DataSourceParameters {
-        public static class Life {
+        public static class State {
             @NotNull
             final WeakReference<LifecycleOwner> lifecycleOwner;
 
-            public Life(@NotNull WeakReference<LifecycleOwner> lifecycleOwner) {
+            public State(@NotNull WeakReference<LifecycleOwner> lifecycleOwner) {
                 this.lifecycleOwner = lifecycleOwner;
             }
         }
@@ -44,19 +44,19 @@ public class DataSource<
         @Nullable
         final View view;
         @NotNull
-        final Life life;
+        final State state;
 
         public DataSourceParameters(
                 @NotNull View view,
                 @NotNull WeakReference<LifecycleOwner> lifecycleOwner
         ) {
             this.view = view;
-            this.life = new Life(lifecycleOwner);
+            this.state = new State(lifecycleOwner);
         }
 
-        DataSourceParameters(@NotNull Life life) {
+        DataSourceParameters(@NotNull State state) {
             this.view = null;
-            this.life = life;
+            this.state = state;
         }
     }
 
@@ -85,7 +85,7 @@ public class DataSource<
     }
 
     public DataSource(@NotNull DataSourceParameters parameters, @NotNull DataAdapter<VH, T> adapter) {
-        this(parameters.life.lifecycleOwner, adapter, parameters.view);
+        this(parameters.state.lifecycleOwner, adapter, parameters.view);
     }
 
     private void initItem(T item) {
