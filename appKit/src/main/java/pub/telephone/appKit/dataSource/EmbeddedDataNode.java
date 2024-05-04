@@ -109,7 +109,7 @@ public abstract class EmbeddedDataNode<
     }
 
     public EmbeddedDataNode(@NotNull EmbeddedDataNodeParameters<VH, CH, INFO, CD> parameters) {
-        this(parameters.node.lifecycleOwner, parameters.node.holder, parameters.embeddedCreator);
+        this(parameters.node.state.lifecycleOwner, parameters.node.holder, parameters.embeddedCreator);
     }
 
     final Binding<Object> init = emptyBinding();
