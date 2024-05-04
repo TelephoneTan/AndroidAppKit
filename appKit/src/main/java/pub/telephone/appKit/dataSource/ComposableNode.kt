@@ -43,7 +43,7 @@ abstract class ComposableNode(params: DataNodeParameters.State) :
     @Composable
     private fun <D> Binding<D>.rememberBinding(
         getState: Binding<D>.() -> State<Result<D>>
-    ): Result<D> = remember { getState(this) }.value
+    ) = remember { getState(this) }
 
     @Composable
     protected fun <D> Binding<D>.rememberBinding() = rememberBinding {
