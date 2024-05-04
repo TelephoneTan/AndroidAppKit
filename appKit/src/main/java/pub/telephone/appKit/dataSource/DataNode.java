@@ -477,8 +477,18 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     public static class DataNodeParameters<VH> {
-        @Nullable
-        final WeakReference<LifecycleOwner> lifecycleOwner;
+        public static class State {
+            @Nullable
+            final WeakReference<LifecycleOwner> lifecycleOwner;
+
+            public State(@Nullable WeakReference<LifecycleOwner> lifecycleOwner) {
+                this.lifecycleOwner = lifecycleOwner;
+            }
+        }
+
+        @NotNull
+        final State state;
+
         @Nullable
         final VH holder;
 
@@ -486,8 +496,13 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 @Nullable WeakReference<LifecycleOwner> lifecycleOwner,
                 @Nullable VH holder
         ) {
-            this.lifecycleOwner = lifecycleOwner;
+            this.state = new State(lifecycleOwner);
             this.holder = holder;
+        }
+
+        DataNodeParameters(@NotNull State state) {
+            this.state = state;
+            this.holder = null;
         }
     }
 
@@ -497,7 +512,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     public DataNode(@NotNull DataNodeParameters<VH> parameters) {
-        this(parameters.lifecycleOwner, parameters.holder);
+        this(parameters.state.lifecycleOwner, parameters.holder);
     }
 
     protected boolean alive() {
