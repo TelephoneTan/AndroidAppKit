@@ -178,6 +178,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         ) {
             return new Promise<>(this.task.invoke(test, retry));
         }
+
+        public Promise<LazyRes<T>> Do() {
+            return Do(Objects.requireNonNull(test), retry);
+        }
     }
 
     public static class LazyRes<T> {
