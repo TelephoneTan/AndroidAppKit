@@ -11,8 +11,17 @@ import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
 
 abstract class ComposableAdapter<D, CD : ComposableNode>(
     params: DataSourceParameters.State,
-    private val srcState: State<List<D>>
+    private val srcState: State<DataNode.Result<List<D>>>
 ) : DataAdapter<DataViewHolder<ViewBinding>, CD> {
+    class ComposableAdapterParameters<D>(
+        val params: DataSourceParameters.State,
+        val srcState: State<DataNode.Result<List<D>>>
+    )
+
+    constructor(params: ComposableAdapterParameters<D>) : this(params.params, params.srcState)
+
+    final override val lifecycleOwner = params.lifecycleOwner
+
     @Suppress("LeakingThis")
     final override val source = DataSource(DataSourceParameters(params), this)
 
@@ -50,7 +59,9 @@ abstract class ComposableAdapter<D, CD : ComposableNode>(
     fun Content() {
         remember {
             derivedStateOf {
-                source.ShuffleAll({ _ -> srcState.value.map(::map) })
+                if (srcState.value.isSuccess) {
+                    source.ShuffleAll({ _ -> srcState.value.value.map(::map) })
+                }
                 true
             }
         }

@@ -17,6 +17,7 @@ public abstract class DataSourceAdapter<
         VH extends DataViewHolder<?>,
         T extends DataNode<VH>
         > extends RecyclerView.Adapter<VH> implements DataAdapter<VH, T> {
+    protected final WeakReference<LifecycleOwner> lifecycleOwner;
     public final DataSource<VH, T> Source;
 
     @NonNull
@@ -25,11 +26,18 @@ public abstract class DataSourceAdapter<
         return Source;
     }
 
+    @NonNull
+    @Override
+    public final WeakReference<LifecycleOwner> getLifecycleOwner() {
+        return lifecycleOwner;
+    }
+
     public DataSourceAdapter(@NotNull WeakReference<LifecycleOwner> lifecycleOwner, @NotNull View v) {
         this(new DataSource.DataSourceParameters(v, lifecycleOwner));
     }
 
     public DataSourceAdapter(@NotNull DataSource.DataSourceParameters parameters) {
+        this.lifecycleOwner = parameters.state.lifecycleOwner;
         this.Source = new DataSource<>(parameters, this);
     }
 
