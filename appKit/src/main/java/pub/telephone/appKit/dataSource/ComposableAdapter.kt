@@ -68,7 +68,7 @@ abstract class ComposableAdapter<D, CD : ComposableNode>(
                 }
                 true
             }
-        }
+        }.value
         __Content__(state.value)
     }
 }
