@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import kotlin.jvm.functions.Function1;
+import pub.telephone.appKit.AppKit;
 import pub.telephone.appKit.MyApp;
 
 public class DataSource<
@@ -65,6 +66,7 @@ public class DataSource<
             @NotNull DataAdapter<VH, T> adapter,
             @Nullable View view
     ) {
+        AppKit.Companion.ensureMainThread();
         this.view = view == null ? null : new WeakReference<>(view);
         this.adapter = adapter;
         this.lifecycleOwner = lifecycleOwner;

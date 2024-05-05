@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
+import pub.telephone.appKit.AppKit;
 import pub.telephone.appKit.MyApp;
 import pub.telephone.javapromise.async.Async;
 import pub.telephone.javapromise.async.kpromise.PromiseCancelledBroadcast;
@@ -252,6 +253,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         Result<D> data;
 
         public Binding(Integer key, Integer initKey, PromiseJob<LazyRes<D>> fetchJob) {
+            AppKit.Companion.ensureMainThread();
             this.key = key;
             this.initKey = initKey;
             this.fetchJob = fetchJob;
@@ -525,6 +527,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     public DataNode(@Nullable WeakReference<LifecycleOwner> lifecycleOwner, @Nullable VH holder) {
+        AppKit.Companion.ensureMainThread();
         this.lifecycleOwner = lifecycleOwner;
         this.holder = holder;
     }

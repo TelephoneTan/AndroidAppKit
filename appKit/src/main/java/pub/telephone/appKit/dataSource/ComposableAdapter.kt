@@ -7,6 +7,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.viewbinding.ViewBinding
+import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
 
 abstract class ComposableAdapter<D, CD : ComposableNode>(
@@ -19,6 +20,10 @@ abstract class ComposableAdapter<D, CD : ComposableNode>(
     )
 
     constructor(params: ComposableAdapterParameters<D>) : this(params.params, params.srcState)
+
+    init {
+        AppKit.ensureMainThread()
+    }
 
     final override val lifecycleOwner = params.lifecycleOwner
 
