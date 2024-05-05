@@ -41,29 +41,30 @@ abstract class ComposableNode(params: DataNodeParameters.State) :
     }
 
     @Composable
-    private fun <D> Binding<D>.rememberBinding(
-        getState: Binding<D>.() -> State<Result<D>>
+    private fun <D, M> BindingX<D, M>.rememberBinding(
+        getState: BindingX<D, M>.() -> State<Result<D>>
     ) = remember { getState(this) }
 
     @Composable
-    protected fun <D> Binding<D>.rememberBinding() = rememberBinding {
+    protected fun <D, M> BindingX<D, M>.rememberBinding() = rememberBinding {
         Bind(null) { _ -> null }!!
     }
 
     @Composable
-    protected fun <D> Binding<D>.rememberBinding(task: RetrySharedTask<D, *>) = rememberBinding {
-        Bind(task, null, { _ -> null }, { _, _ -> null }, null)!!
-    }
+    protected fun <D, M> BindingX<D, M>.rememberBinding(task: RetrySharedTask<D, M>) =
+        rememberBinding {
+            Bind(task, null, { _ -> null }, { _, _ -> null }, null)!!
+        }
 
     @Composable
-    protected fun <D> Binding<D>.rememberBinding(stream: Boolean) = rememberBinding {
+    protected fun <D, M> BindingX<D, M>.rememberBinding(stream: Boolean) = rememberBinding {
         Bind(null, stream) { _, _ -> null }!!
     }
 
     @Composable
-    protected fun <D> Binding<D>.rememberBinding(
+    protected fun <D, M> BindingX<D, M>.rememberBinding(
         stream: Boolean,
-        task: RetrySharedTask<D, *>
+        task: RetrySharedTask<D, M>
     ) = rememberBinding {
         Bind(task, null, { _ -> null }, { _, _ -> null }, stream)!!
     }

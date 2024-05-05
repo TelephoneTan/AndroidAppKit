@@ -229,38 +229,67 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
     }
 
-    private static <D, M> PromiseJob<LazyRes<D>> buildFetchJob(RetrySharedTask<D, M> task) {
-        return (rs, re) -> rs.Resolve(task.Do(
-                Objects.requireNonNull(task.test),
-                task.retry
+    private static <D, M> @Nullable PromiseJob<LazyRes<D>> buildFetchJob(
+            @Nullable RetrySharedTask<D, M> originalTask,
+            @Nullable RetrySharedTask<D, M> updatedTask
+    ) {
+        if (originalTask == null || updatedTask == null) {
+            return null;
+        }
+        return (rs, re) -> rs.Resolve(
+                originalTask.Do(
+                        Objects.requireNonNull(updatedTask.test),
+                        updatedTask.retry
         ));
     }
 
-    protected <D> Binding<D> bindTask(TagKey key, RetrySharedTask<D, ?> task) {
-        return new Binding<>(key.Key, key.InitKey, buildFetchJob(task));
+    protected <D, M> BindingX<D, M> bindTaskX(TagKey key, @Nullable RetrySharedTask<D, M> task) {
+        return new BindingX<>(key.Key, key.InitKey, task);
+    }
+
+    protected <D> Binding<D> bindTask(TagKey key, @Nullable RetrySharedTask<D, Object> task) {
+        return new Binding<>(key.Key, key.InitKey, task);
+    }
+
+    protected <D, M> BindingX<D, M> emptyBindingX(@NotNull TagKey key) {
+        return new BindingX<>(key.Key, key.InitKey, null);
     }
 
     protected <D> Binding<D> emptyBinding(@NotNull TagKey key) {
         return new Binding<>(key.Key, key.InitKey, null);
     }
 
+    protected BindingX<Object, Object> emptyBindingX() {
+        return new BindingX<>(null, null, null);
+    }
+
     protected Binding<Object> emptyBinding() {
         return new Binding<>(null, null, null);
     }
 
-    public class Binding<D> {
+    public class Binding<D> extends BindingX<D, Object> {
+        public Binding(Integer key, Integer initKey, @Nullable RetrySharedTask<D, Object> task) {
+            super(key, initKey, task);
+        }
+    }
+
+    public class BindingX<D, M> {
         final Integer key;
         final Integer initKey;
+        @Nullable
+        final RetrySharedTask<D, M> task;
+        @Nullable
         final PromiseJob<LazyRes<D>> fetchJob;
         final MutableState<Result<D>> state = DataNodeKt.mutableStateOf(Result.Init());
         Promise<?> fetchPromise;
         Result<D> data;
 
-        public Binding(Integer key, Integer initKey, PromiseJob<LazyRes<D>> fetchJob) {
+        public BindingX(Integer key, Integer initKey, @Nullable RetrySharedTask<D, M> task) {
             AppKit.Companion.ensureMainThread();
             this.key = key;
             this.initKey = initKey;
-            this.fetchJob = fetchJob;
+            this.task = task;
+            this.fetchJob = buildFetchJob(task, task);
         }
 
         protected boolean alive(Promise<?> currentFetch) {
@@ -334,6 +363,44 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return initKey;
         }
 
+        public class BindParameters {
+            @Nullable
+            PromiseJob<LazyRes<D>> fetchJob = BindingX.this.fetchJob;
+            public @Nullable Set<Integer> changedBindingKeys;
+            public @Nullable Function1<VH, Void> init;
+            public @Nullable Function2<VH, D, Void> onSucceed;
+            public @Nullable Boolean stream;
+
+            BindParameters setFetchJob(@Nullable PromiseJob<LazyRes<D>> fetchJob) {
+                this.fetchJob = fetchJob;
+                return this;
+            }
+
+            public BindParameters setFetchJob(@Nullable RetrySharedTask<D, M> newTask) {
+                return setFetchJob(buildFetchJob(task, newTask));
+            }
+
+            public BindParameters setChangedBindingKeys(@Nullable Set<Integer> changedBindingKeys) {
+                this.changedBindingKeys = changedBindingKeys;
+                return this;
+            }
+
+            public BindParameters setInit(@Nullable Function1<VH, Void> init) {
+                this.init = init;
+                return this;
+            }
+
+            public BindParameters setOnSucceed(@Nullable Function2<VH, D, Void> onSucceed) {
+                this.onSucceed = onSucceed;
+                return this;
+            }
+
+            public BindParameters setStream(@Nullable Boolean stream) {
+                this.stream = stream;
+                return this;
+            }
+        }
+
         public @Nullable State<Result<D>> Bind(Set<Integer> changedBindingKeys, Function1<VH, Void> init) {
             return Bind(changedBindingKeys, init, null);
         }
@@ -368,22 +435,33 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
 
         public @Nullable State<Result<D>> Bind(
-                RetrySharedTask<D, ?> task,
+                @Nullable RetrySharedTask<D, M> newTask,
                 Set<Integer> changedBindingKeys,
                 Function1<VH, Void> init,
                 Function2<VH, D, Void> onSucceed,
                 Boolean stream
         ) {
-            return Bind(buildFetchJob(task), changedBindingKeys, init, onSucceed, stream);
+            return Bind(buildFetchJob(task, newTask), changedBindingKeys, init, onSucceed, stream);
         }
 
         public @Nullable State<Result<D>> Bind(
-                PromiseJob<LazyRes<D>> fetchJob,
+                @Nullable PromiseJob<LazyRes<D>> fetchJob,
                 Set<Integer> changedBindingKeys,
                 Function1<VH, Void> init,
                 Function2<VH, D, Void> onSucceed,
                 Boolean stream
         ) {
+            return Bind(
+                    new BindParameters()
+                            .setFetchJob(fetchJob)
+                            .setChangedBindingKeys(changedBindingKeys)
+                            .setInit(init)
+                            .setOnSucceed(onSucceed)
+                            .setStream(stream)
+            );
+        }
+
+        public @Nullable State<Result<D>> Bind(@NotNull BindParameters params) {
             Function1<VH, Void> renderer = holder -> {
                 if (holder == null) {
                     return null;
@@ -392,23 +470,27 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     return null;
                 }
                 if (data.status == Result.StatusType.Init) {
-                    if (init != null) {
-                        init.invoke(holder);
+                    if (params.init != null) {
+                        params.init.invoke(holder);
                     }
                 } else if (data.status == Result.StatusType.Success) {
-                    if (onSucceed != null) {
-                        onSucceed.invoke(holder, data.value);
+                    if (params.onSucceed != null) {
+                        params.onSucceed.invoke(holder, data.value);
                     }
                 }
                 data = null;
                 return null;
             };
             return whenAlive(fetchPromise, holder -> {
-                if (changedBindingKeys == null || changedBindingKeys.isEmpty() || (initKey != null && changedBindingKeys.contains(initKey))) {
+                if (
+                        params.changedBindingKeys == null ||
+                                params.changedBindingKeys.isEmpty() ||
+                                (initKey != null && params.changedBindingKeys.contains(initKey))
+                ) {
                     data = Result.Init();
                     state.setValue(data);
-                    if (key != null && fetchJob != null) {
-                        Promise<LazyRes<D>> currentFetch = new Promise<>(fetchJob);
+                    if (key != null && params.fetchJob != null) {
+                        Promise<LazyRes<D>> currentFetch = new Promise<>(params.fetchJob);
                         fetchPromise = currentFetch;
                         PromiseFulfilledListener<LazyRes<D>, Object>[] s =
                                 new PromiseFulfilledListener[1];
@@ -417,7 +499,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                                 Async.Delay(Duration.ofSeconds(delaySeconds)).Then(o -> {
                                     MyApp.Companion.post(() -> {
                                         Runnable next =
-                                                () -> new Promise<>(fetchJob).Then(s[0]).Catch(f[0]);
+                                                () -> new Promise<>(params.fetchJob).Then(s[0]).Catch(f[0]);
                                         Runnable[] callNext = new Runnable[1];
                                         callNext[0] = () -> {
                                             if (visible(currentFetch)) {
@@ -451,7 +533,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                         s[0] = lazy -> {
                             succeed(lazy.Cache, currentFetch);
                             Runnable callAgain = () -> {
-                                if (stream == null || !stream) {
+                                if (params.stream == null || !params.stream) {
                                     return;
                                 }
                                 again.invoke(5L);
@@ -470,7 +552,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     }
                     renderer.invoke(holder);
                     return state;
-                } else if (key != null && changedBindingKeys.contains(key)) {
+                } else if (key != null && params.changedBindingKeys.contains(key)) {
                     renderer.invoke(holder);
                     return null;
                 } else {
