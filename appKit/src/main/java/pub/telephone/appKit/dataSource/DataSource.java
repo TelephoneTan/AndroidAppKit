@@ -29,7 +29,7 @@ public class DataSource<
     private final List<T> source = new ArrayList<>();
     final @Nullable WeakReference<View> view;
     final DataAdapter<VH, T> adapter;
-    final WeakReference<LifecycleOwner> lifecycleOwner;
+    protected final WeakReference<LifecycleOwner> lifecycleOwner;
 
     public static class DataSourceParameters {
         public static class State {
