@@ -370,6 +370,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             public @Nullable Function1<VH, Void> init;
             public @Nullable Function2<VH, D, Void> onSucceed;
             public @Nullable Boolean stream;
+            public @Nullable Boolean noGeneralInit;
 
             BindParameters setFetchJob(@Nullable PromiseJob<LazyRes<D>> fetchJob) {
                 this.fetchJob = fetchJob;
@@ -397,6 +398,11 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
             public BindParameters setStream(@Nullable Boolean stream) {
                 this.stream = stream;
+                return this;
+            }
+
+            public BindParameters setNoGeneralInit(@Nullable Boolean noGeneralInit) {
+                this.noGeneralInit = noGeneralInit;
                 return this;
             }
         }
@@ -482,14 +488,26 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 return null;
             };
             return whenAlive(fetchPromise, holder -> {
+                Function0<Boolean> isSpecialInit = () ->
+                        params.changedBindingKeys != null &&
+                                initKey != null &&
+                                params.changedBindingKeys.contains(initKey);
                 if (
                         params.changedBindingKeys == null ||
                                 params.changedBindingKeys.isEmpty() ||
-                                (initKey != null && params.changedBindingKeys.contains(initKey))
+                                isSpecialInit.invoke()
                 ) {
                     data = Result.Init();
                     state.setValue(data);
-                    if (key != null && params.fetchJob != null) {
+                    if (
+                            key != null &&
+                                    params.fetchJob != null &&
+                                    (
+                                            params.noGeneralInit == null ||
+                                                    !params.noGeneralInit ||
+                                                    isSpecialInit.invoke()
+                                    )
+                    ) {
                         Promise<LazyRes<D>> currentFetch = new Promise<>(params.fetchJob);
                         fetchPromise = currentFetch;
                         PromiseFulfilledListener<LazyRes<D>, Object>[] s =
