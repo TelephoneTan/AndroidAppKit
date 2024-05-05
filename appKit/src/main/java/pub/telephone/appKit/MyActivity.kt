@@ -142,16 +142,27 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
         return true
     }
 
+    private val useOnBackPressedDispatcher get() = Build.VERSION.SDK_INT >= 33
+
     @Suppress("OVERRIDE_DEPRECATION")
     final override fun onBackPressed() {
-        @Suppress("DEPRECATION")
-        super.onBackPressed()
+        if (useOnBackPressedDispatcher) {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        } else {
+            handleOnBackPressed()
+        }
     }
 
     @Suppress("FunctionName")
     protected fun super_onBackPressed_ui() {
-        onBackPressedCallback.isEnabled = false
-        onBackPressedDispatcher.onBackPressed()
+        if (useOnBackPressedDispatcher) {
+            onBackPressedCallback.isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+        } else {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        }
     }
 
     @Suppress("FunctionName")
@@ -189,7 +200,9 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     final override fun onCreate(savedInstanceState: Bundle?) {
         onSplash_ui()
         super.onCreate(savedInstanceState)
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        if (useOnBackPressedDispatcher) {
+            onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        }
         enableEdgeToEdge()
         window.apply {
             navigationBarColor = Color.TRANSPARENT
