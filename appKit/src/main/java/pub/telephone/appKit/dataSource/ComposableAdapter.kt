@@ -49,6 +49,10 @@ abstract class ComposableAdapter<D, CD : ComposableNode>(
         releaseState()
     }
 
+    override fun getItemViewType(node: CD): Int {
+        return 0
+    }
+
     @Composable
     @SuppressLint("ComposableNaming")
     protected abstract fun __Content__(list: DataNode.Result<List<CD>>)
