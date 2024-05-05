@@ -70,7 +70,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "pub.telephone"
             artifactId = "app-kit"
-            version = "9.2.1"
+            version = "9.2.2"
 
             afterEvaluate {
                 from(components["release"])
