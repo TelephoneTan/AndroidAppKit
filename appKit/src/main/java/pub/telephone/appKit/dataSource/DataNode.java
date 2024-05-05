@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -60,8 +61,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
 
         private static final Throwable _RETRY = new Throwable();
-        final PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test;
-        final PromiseStatefulFulfilledListener<M, Object> retry;
+        final @Nullable PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test;
+        final @Nullable PromiseStatefulFulfilledListener<M, Object> retry;
         final Function2<
                 PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>>,
                 PromiseStatefulFulfilledListener<M, Object>,
@@ -73,12 +74,6 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return mid -> job.invoke().Then(res -> mid.Set(null, res));
         }
 
-        private static <M, T> PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> toTest(
-                PromiseFulfilledListener<Reference<M, T>, Token<T>> statelessTest
-        ) {
-            return (v, promiseState) -> statelessTest.OnFulfilled(v);
-        }
-
         public static <T> RetrySharedTask<T, Object> Simple(Function0<Promise<T>> job) {
             return new RetrySharedTask<>(
                     buildStatelessTest(job),
@@ -86,39 +81,55 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             );
         }
 
+        public static <T> RetrySharedTask<T, Object> Simple() {
+            return new RetrySharedTask<>();
+        }
+
+        public RetrySharedTask() {
+            this((Boolean) null, null, null);
+        }
+
         public RetrySharedTask(
-                PromiseFulfilledListener<Reference<M, T>, Token<T>> test,
-                PromiseFulfilledListener<M, Object> retry
+                @Nullable PromiseFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseFulfilledListener<M, Object> retry
         ) {
             this(
-                    toTest(test),
-                    (v, promiseState) -> retry.OnFulfilled(v)
+                    test == null ? null : (v, promiseState) -> test.OnFulfilled(v),
+                    retry == null ? null : (v, promiseState) -> retry.OnFulfilled(v)
             );
         }
 
         public RetrySharedTask(
-                PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
-                PromiseStatefulFulfilledListener<M, Object> retry
+                @Nullable PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseStatefulFulfilledListener<M, Object> retry
         ) {
             this(test, retry, null);
         }
 
         public RetrySharedTask(
-                PromiseFulfilledListener<Reference<M, T>, Token<T>> test,
-                PromiseFulfilledListener<M, Object> retry,
+                @Nullable PromiseFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseFulfilledListener<M, Object> retry,
                 Boolean refreshCache
         ) {
             this(
-                    (v, promiseState) -> test.OnFulfilled(v),
-                    (v, promiseState) -> retry.OnFulfilled(v),
+                    test == null ? null : (v, promiseState) -> test.OnFulfilled(v),
+                    retry == null ? null : (v, promiseState) -> retry.OnFulfilled(v),
                     refreshCache
             );
         }
 
         public RetrySharedTask(
-                PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
-                PromiseStatefulFulfilledListener<M, Object> retry,
+                @Nullable PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseStatefulFulfilledListener<M, Object> retry,
                 Boolean refreshCache
+        ) {
+            this(refreshCache, test, retry);
+        }
+
+        private RetrySharedTask(
+                Boolean refreshCache,
+                @Nullable PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseStatefulFulfilledListener<M, Object> retry
         ) {
             this.test = test;
             this.retry = retry;
@@ -161,8 +172,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
 
         public Promise<LazyRes<T>> Do(
-                PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
-                PromiseStatefulFulfilledListener<M, Object> retry
+                @NotNull PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
+                @Nullable PromiseStatefulFulfilledListener<M, Object> retry
         ) {
             return new Promise<>(this.task.invoke(test, retry));
         }
@@ -210,7 +221,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     private static <D, M> PromiseJob<LazyRes<D>> buildFetchJob(RetrySharedTask<D, M> task) {
-        return (rs, re) -> rs.Resolve(task.Do(task.test, task.retry));
+        return (rs, re) -> rs.Resolve(task.Do(
+                Objects.requireNonNull(task.test),
+                task.retry
+        ));
     }
 
     protected <D> Binding<D> bindTask(TagKey key, RetrySharedTask<D, ?> task) {
