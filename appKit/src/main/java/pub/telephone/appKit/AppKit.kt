@@ -3,12 +3,19 @@ package pub.telephone.appKit
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Looper
 import android.util.DisplayMetrics
 import java.util.AbstractMap
 import kotlin.math.min
 
 class AppKit {
     companion object {
+        private val isOnMainThread get() = Looper.myLooper() == Looper.getMainLooper()
+        fun ensureMainThread() {
+            if (isOnMainThread.not()) {
+                throw Throwable()
+            }
+        }
         private fun overflow(w: Int, h: Int): Boolean {
             return w * h * 4 > 90 * 1024 * 1024
         }
