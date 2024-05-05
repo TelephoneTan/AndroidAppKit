@@ -308,6 +308,9 @@ public class DataSource<
     }
 
     final void change(Function1<List<T>, List<Map.Entry<T, Set<Integer>>>> changer, Runnable... after) {
+        if (view == null) {
+            return;
+        }
         post(() -> {
             List<Map.Entry<T, Set<Integer>>> changed = changer.invoke(GetAll());
             if (changed == null) {

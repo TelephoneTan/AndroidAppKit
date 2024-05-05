@@ -626,7 +626,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         if (source == null) {
             return;
         }
-        source.change(all -> {
+        source.ChangeAll(all -> {
             onAll.invoke(all);
             return null;
         });
