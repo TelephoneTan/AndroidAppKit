@@ -211,6 +211,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return this.status == StatusType.Success;
         }
 
+        public final T get(T defaultValue) {
+            return isInit() ? defaultValue : value;
+        }
+
         public static <T> Result<T> Init() {
             return new Result<>(StatusType.Init, null);
         }
