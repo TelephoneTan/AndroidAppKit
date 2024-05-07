@@ -172,15 +172,19 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             };
         }
 
-        public Promise<LazyRes<T>> Do(
+        private final AtomicReference<Promise<LazyRes<T>>> pf = new AtomicReference<>();
+
+        Promise<LazyRes<T>> perform(
                 @NotNull PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
                 @Nullable PromiseStatefulFulfilledListener<M, Object> retry
         ) {
-            return new Promise<>(this.task.invoke(test, retry));
+            Promise<LazyRes<T>> p = new Promise<>(this.task.invoke(test, retry));
+            pf.set(p);
+            return p;
         }
 
-        public Promise<LazyRes<T>> Do() {
-            return Do(Objects.requireNonNull(test), retry);
+        public @NotNull Promise<LazyRes<T>> current() {
+            return Objects.requireNonNull(pf.get());
         }
     }
 
@@ -237,7 +241,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return null;
         }
         return (rs, re) -> rs.Resolve(
-                originalTask.Do(
+                originalTask.perform(
                         Objects.requireNonNull(updatedTask.test),
                         updatedTask.retry
         ));
