@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import kotlin.jvm.functions.Function0;
@@ -823,9 +824,28 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
     }
 
+    private final AtomicBoolean destroyCancelRegistered = new AtomicBoolean(false);
+
     final void wrapBind(Set<Integer> changedBindingKeys) {
         if (changedBindingKeys == null || changedBindingKeys.isEmpty()) {
             refreshScope();
+        }
+        if (destroyCancelRegistered.compareAndSet(false, true)) {
+            LifecycleOwner lo = lifecycleOwner.get();
+            if (lo != null) {
+                lo.getLifecycle().addObserver(new LifecycleEventObserver() {
+                    @Override
+                    public void onStateChanged(
+                            @NonNull LifecycleOwner lo,
+                            @NonNull Lifecycle.Event event
+                    ) {
+                        if (event.getTargetState() == Lifecycle.State.DESTROYED) {
+                            lo.getLifecycle().removeObserver(this);
+                            cancel();
+                        }
+                    }
+                });
+            }
         }
         ColorBinding.Bind(changedBindingKeys, holder -> {
             ColorManager<?, ?, ?> manager = getMyColorManager();
