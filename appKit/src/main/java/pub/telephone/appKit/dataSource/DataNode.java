@@ -728,21 +728,24 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     public final void EmitChange_ui(Set<Integer> keys) {
         if (source != null) {
             if (source.view == null) {
-                return;
-            }
-            source.change(x -> {
-                View v = source.view.get();
-                if (v == null) {
-                    return null;
-                }
-                if (!(v instanceof ViewPager2)) {
-                    return Collections.singletonList(
-                            new AbstractMap.SimpleEntry<>(DataNode.this, keys)
-                    );
-                }
                 wrapBind(keys);
-                return null;
-            });
+            } else {
+                source.change(x -> {
+                    View v = source.view.get();
+                    if (v == null) {
+                        return null;
+                    }
+                    if (v instanceof ViewPager2) {
+                        wrapBind(keys);
+                        return null;
+                    } else {
+                        return Collections.singletonList(
+                                new AbstractMap.SimpleEntry<>(DataNode.this, keys)
+                        );
+                    }
+
+                });
+            }
         } else if (holder != null) {
             bind(holder, keys);
         }
