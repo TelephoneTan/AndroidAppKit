@@ -85,6 +85,9 @@ public abstract class DataSourceAdapter<
         return getItemViewType(Source.Get(position));
     }
 
+    protected void beforeViewRecycled_ui(@NonNull VH holder) {
+    }
+
     @Override
     public final void onViewRecycled(@NonNull VH holder) {
         int pos = holder.getAdapterPosition();
@@ -92,5 +95,7 @@ public abstract class DataSourceAdapter<
             return;
         }
         Source.Get(pos).cancel_ui();
+        //
+        beforeViewRecycled_ui(holder);
     }
 }
