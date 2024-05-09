@@ -405,6 +405,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             public @Nullable Boolean stream;
             public @Nullable Boolean noGeneralInit;
 
+            public BindParameters(@Nullable Set<Integer> changedBindingKeys) {
+                this.changedBindingKeys = changedBindingKeys;
+            }
+
             BindParameters setFetchJob(@Nullable PromiseJob<LazyRes<D>> fetchJob) {
                 this.fetchJob = fetchJob;
                 return this;
@@ -491,9 +495,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                 Boolean stream
         ) {
             return Bind(
-                    new BindParameters()
+                    new BindParameters(changedBindingKeys)
                             .setFetchJob(fetchJob)
-                            .setChangedBindingKeys(changedBindingKeys)
                             .setInit(init)
                             .setOnSucceed(onSucceed)
                             .setStream(stream)
