@@ -35,6 +35,7 @@ import pub.telephone.javapromise.async.promise.PromiseCancelledBroadcaster;
 import pub.telephone.javapromise.async.promise.PromiseFulfilledListener;
 import pub.telephone.javapromise.async.promise.PromiseJob;
 import pub.telephone.javapromise.async.promise.PromiseRejectedListener;
+import pub.telephone.javapromise.async.promise.PromiseResolver;
 import pub.telephone.javapromise.async.promise.PromiseStatefulFulfilledListener;
 
 public abstract class DataNode<VH extends DataViewHolder<?>> {
@@ -172,19 +173,47 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             };
         }
 
-        private final AtomicReference<Promise<LazyRes<T>>> pf = new AtomicReference<>();
+        @Nullable
+        private Promise<LazyRes<T>> latest = null;
+        @Nullable
+        private PromiseResolver<LazyRes<T>> first = null;
 
-        Promise<LazyRes<T>> perform(
+        @NotNull Promise<LazyRes<T>> perform(
                 @NotNull PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
                 @Nullable PromiseStatefulFulfilledListener<M, Object> retry
         ) {
             Promise<LazyRes<T>> p = new Promise<>(this.task.invoke(test, retry));
-            pf.set(p);
+            PromiseResolver<LazyRes<T>> waiting;
+            synchronized (this) {
+                latest = p;
+                waiting = first;
+                first = null;
+            }
+            if (waiting != null) {
+                waiting.Resolve(p);
+            }
             return p;
         }
 
         public @NotNull Promise<LazyRes<T>> current() {
-            return Objects.requireNonNull(pf.get());
+            synchronized (this) {
+                if (latest != null) {
+                    return latest;
+                }
+                return new Promise<>((rs, re) -> {
+                    Promise<LazyRes<T>> existing = null;
+                    synchronized (this) {
+                        if (latest != null) {
+                            existing = latest;
+                        } else {
+                            first = rs;
+                        }
+                    }
+                    if (existing != null) {
+                        rs.Resolve(existing);
+                    }
+                });
+            }
         }
     }
 
