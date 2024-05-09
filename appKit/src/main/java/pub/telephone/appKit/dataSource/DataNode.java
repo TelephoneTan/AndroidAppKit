@@ -38,6 +38,7 @@ import pub.telephone.javapromise.async.promise.PromiseJob;
 import pub.telephone.javapromise.async.promise.PromiseRejectedListener;
 import pub.telephone.javapromise.async.promise.PromiseResolver;
 import pub.telephone.javapromise.async.promise.PromiseStatefulFulfilledListener;
+import pub.telephone.javapromise.async.task.shared.SharedTask;
 
 public abstract class DataNode<VH extends DataViewHolder<?>> {
     public static class RetrySharedTask<T, M> {
@@ -178,6 +179,10 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         private Promise<LazyRes<T>> latest = null;
         @Nullable
         private PromiseResolver<LazyRes<T>> first = null;
+        @NotNull
+        private final Object currentMutex = new Object();
+        @NotNull
+        private final SharedTask<LazyRes<T>> mergeTask = new SharedTask<>();
 
         @NotNull Promise<LazyRes<T>> perform(
                 @NotNull PromiseStatefulFulfilledListener<Reference<M, T>, Token<T>> test,
@@ -185,7 +190,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         ) {
             Promise<LazyRes<T>> p = new Promise<>(this.task.invoke(test, retry));
             PromiseResolver<LazyRes<T>> waiting;
-            synchronized (this) {
+            synchronized (currentMutex) {
                 latest = p;
                 waiting = first;
                 first = null;
@@ -196,14 +201,20 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return p;
         }
 
+        public @NotNull Promise<LazyRes<T>> merge() {
+            return mergeTask.Do((rs, re) -> rs.ResolvePromise(
+                    perform(Objects.requireNonNull(test), retry)
+            ));
+        }
+
         public @NotNull Promise<LazyRes<T>> current() {
-            synchronized (this) {
+            synchronized (currentMutex) {
                 if (latest != null) {
                     return latest;
                 }
                 return new Promise<>((rs, re) -> {
                     Promise<LazyRes<T>> existing = null;
-                    synchronized (this) {
+                    synchronized (currentMutex) {
                         if (latest != null) {
                             existing = latest;
                         } else {
