@@ -748,6 +748,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             }
         } else if (holder != null) {
             bind(holder, keys);
+        } else {
+            wrapBind(keys);
         }
     }
 
