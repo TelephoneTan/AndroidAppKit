@@ -640,11 +640,11 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     final AtomicReference<PromiseScope> scope = new AtomicReference<>(buildScope(broadcaster.get()));
     final Object scopeMutex = new Object();
 
-    private static PromiseCancelledBroadcaster buildBroadcaster() {
+    private static @NotNull PromiseCancelledBroadcaster buildBroadcaster() {
         return new PromiseCancelledBroadcaster();
     }
 
-    private static PromiseScope buildScope(@NotNull PromiseCancelledBroadcaster broadcaster) {
+    private static @NotNull PromiseScope buildScope(@NotNull PromiseCancelledBroadcaster broadcaster) {
         return new PromiseScope() {
             @NonNull
             @Override
@@ -829,10 +829,32 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         }
     }
 
-    public final PromiseScope currentScope() {
+    public final @NotNull PromiseScope currentScope() {
         synchronized (scopeMutex) {
             return scope.get();
         }
+    }
+
+    protected final
+    @NotNull pub.telephone.javapromise.async.promise.PromiseCancelledBroadcast currentBroadcast() {
+        PromiseCancelledBroadcast b = Objects.requireNonNull(currentScope().getScopeCancelledBroadcast());
+        return new pub.telephone.javapromise.async.promise.PromiseCancelledBroadcast() {
+            @Override
+            public boolean isActive() {
+                return b.isActive();
+            }
+
+            @NonNull
+            @Override
+            public Object listen(@NonNull Runnable runnable) {
+                return b.listen(runnable);
+            }
+
+            @Override
+            public void unListen(@NonNull Object o) {
+                b.unListen(o);
+            }
+        };
     }
 
     private final AtomicBoolean destroyCancelRegistered = new AtomicBoolean(false);
