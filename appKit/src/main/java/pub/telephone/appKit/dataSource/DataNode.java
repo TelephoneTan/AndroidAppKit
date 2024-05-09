@@ -804,14 +804,14 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     protected void color_ui(@NotNull VH holder, @NotNull ColorConfig<?> colors) {
     }
 
-    protected final void cancel() {
+    protected final void cancel_ui() {
         AppKit.Companion.ensureMainThread();
         broadcaster.get().Broadcast();
     }
 
     private void refreshScope() {
         AppKit.Companion.ensureMainThread();
-        cancel();
+        cancel_ui();
         synchronized (scopeMutex) {
             broadcaster.set(buildBroadcaster());
             scope.set(buildScope(broadcaster.get()));
@@ -841,7 +841,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     ) {
                         if (event.getTargetState() == Lifecycle.State.DESTROYED) {
                             lo.getLifecycle().removeObserver(this);
-                            cancel();
+                            cancel_ui();
                         }
                     }
                 });
