@@ -313,7 +313,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         final RetrySharedTask<D, M> task;
         @Nullable
         final PromiseJob<LazyRes<D>> fetchJob;
-        final MutableState<Result<D>> state = DataNodeKt.mutableStateOf(Result.Init());
+        final MutableState<Result<D>> mutableState = DataNodeKt.mutableStateOf(Result.Init());
+        public final State<Result<D>> state = mutableState;
         Promise<?> fetchPromise;
         Result<D> data;
 
@@ -379,20 +380,20 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     return;
                 }
                 data = Result.Succeed(value);
-                state.setValue(data);
+                mutableState.setValue(data);
                 EmitChange_ui(Collections.singleton(key));
             }));
         }
 
         public Integer SetResult(D result) {
             data = Result.Succeed(result);
-            state.setValue(data);
+            mutableState.setValue(data);
             return key;
         }
 
         public Integer ReInit() {
             data = Result.Init();
-            state.setValue(data);
+            mutableState.setValue(data);
             return initKey;
         }
 
@@ -534,7 +535,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                                 isSpecialInit.invoke()
                 ) {
                     data = Result.Init();
-                    state.setValue(data);
+                    mutableState.setValue(data);
                     if (
                             key != null &&
                                     params.fetchJob != null &&
