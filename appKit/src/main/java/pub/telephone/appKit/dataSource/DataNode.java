@@ -624,17 +624,22 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     @Nullable
     WeakReference<VH> binding = null;
     protected int position;
-    final PromiseCancelledBroadcaster broadcaster = new PromiseCancelledBroadcaster();
-    final PromiseScope scope = new PromiseScope() {
-        @NonNull
-        @Override
-        public PromiseCancelledBroadcast getScopeCancelledBroadcast() {
-            return broadcaster;
-        }
-    };
+    final AtomicReference<PromiseCancelledBroadcaster> broadcaster = new AtomicReference<>(buildBroadcaster());
+    final AtomicReference<PromiseScope> scope = new AtomicReference<>(buildScope(broadcaster.get()));
+    final Object scopeMutex = new Object();
 
-    protected PromiseScope currentScope() {
-        return scope;
+    private static PromiseCancelledBroadcaster buildBroadcaster() {
+        return new PromiseCancelledBroadcaster();
+    }
+
+    private static PromiseScope buildScope(@NotNull PromiseCancelledBroadcaster broadcaster) {
+        return new PromiseScope() {
+            @NonNull
+            @Override
+            public PromiseCancelledBroadcast getScopeCancelledBroadcast() {
+                return broadcaster;
+            }
+        };
     }
 
     public static class DataNodeParameters<VH> {
@@ -798,7 +803,30 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     protected void color_ui(@NotNull VH holder, @NotNull ColorConfig<?> colors) {
     }
 
+    protected final void cancel() {
+        AppKit.Companion.ensureMainThread();
+        broadcaster.get().Broadcast();
+    }
+
+    private void refreshScope() {
+        AppKit.Companion.ensureMainThread();
+        cancel();
+        synchronized (scopeMutex) {
+            broadcaster.set(buildBroadcaster());
+            scope.set(buildScope(broadcaster.get()));
+        }
+    }
+
+    public final PromiseScope currentScope() {
+        synchronized (scopeMutex) {
+            return scope.get();
+        }
+    }
+
     final void wrapBind(Set<Integer> changedBindingKeys) {
+        if (changedBindingKeys == null || changedBindingKeys.isEmpty()) {
+            refreshScope();
+        }
         ColorBinding.Bind(changedBindingKeys, holder -> {
             ColorManager<?, ?, ?> manager = getMyColorManager();
             if (manager != null) {
