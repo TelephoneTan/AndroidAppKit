@@ -84,4 +84,13 @@ public abstract class DataSourceAdapter<
     public final int getItemViewType(int position) {
         return getItemViewType(Source.Get(position));
     }
+
+    @Override
+    public final void onViewRecycled(@NonNull VH holder) {
+        int pos = holder.getAdapterPosition();
+        if (pos == RecyclerView.NO_POSITION) {
+            return;
+        }
+        Source.Get(pos).cancel_ui();
+    }
 }
