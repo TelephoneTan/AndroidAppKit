@@ -327,5 +327,16 @@ abstract class MyActivity<CH : DataViewHolder<*>, CD : DataNode<CH>>
     @Suppress("OVERRIDE_DEPRECATION")
     final override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (Build.VERSION.SDK_INT <= 28) {
+            onActivityResult_api_le_28(requestCode, resultCode, data)
+        }
+    }
+
+    @Suppress("FunctionName")
+    protected open fun onActivityResult_api_le_28(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
     }
 }
