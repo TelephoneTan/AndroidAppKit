@@ -123,10 +123,16 @@ class CardListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val state = State(DataNode.DataNodeParameters.State(WeakReference(this)))
 //        val list = mutableStateOf(List(999) { it })
 //        var lastDisposed by mutableIntStateOf(-1)
         setContent {
+            val state = remember {
+                State(DataNode.DataNodeParameters.State(WeakReference(this))).apply {
+                    EmitChange_ui(
+                        null
+                    )
+                }
+            }
 //            Column {
 //                Text(text = "last disposed: $lastDisposed", fontSize = 40.sp)
 //                LazyColumn {
@@ -146,6 +152,5 @@ class CardListActivity : AppCompatActivity() {
 //            }
             state.Content()
         }
-        state.EmitChange_ui(null)
     }
 }
