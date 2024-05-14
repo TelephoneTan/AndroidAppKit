@@ -4,4 +4,10 @@
     <item name="tagInitKey_MainActivityLoad" type="id" />
     <item name="tagKey_MainActivityImage" type="id" />
     <item name="tagInitKey_MainActivityImage" type="id" />
+    <item name="tagKey_CardListActivityItemList" type="id" />
+    <item name="tagInitKey_CardListActivityItemList" type="id" />
+    <item name="tagKey_CardListActivityItem" type="id" />
+    <item name="tagInitKey_CardListActivityItem" type="id" />
+    <item name="tagKey_CardListActivityLastDisposed" type="id" />
+    <item name="tagInitKey_CardListActivityLastDisposed" type="id" />
 </resources>
