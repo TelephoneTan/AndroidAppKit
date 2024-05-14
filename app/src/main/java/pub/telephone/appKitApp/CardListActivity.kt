@@ -1,6 +1,8 @@
 package pub.telephone.appKitApp
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
@@ -11,18 +13,126 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.sp
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import pub.telephone.appKit.dataSource.ComposableAdapter
 import pub.telephone.appKit.dataSource.ComposableNode
 import pub.telephone.appKit.dataSource.DataNode
-import pub.telephone.appKit.dataSource.DataSource
+import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
+import pub.telephone.appKit.dataSource.DataSourceAdapter
+import pub.telephone.appKit.dataSource.DataViewHolder
+import pub.telephone.appKit.dataSource.DataViewHolder.DataViewHolderParameters.Inflater
 import pub.telephone.appKit.dataSource.TagKey
 import pub.telephone.appKit.dataSource.promised
+import pub.telephone.appKitApp.databinding.ActivityCardListBinding
+import pub.telephone.appKitApp.databinding.CardBinding
 import pub.telephone.javahttprequest.network.http.HTTPMethod
 import pub.telephone.javahttprequest.network.http.http
 import pub.telephone.javapromise.async.kpromise.toKPromise
 import java.lang.ref.WeakReference
 
 class CardListActivity : AppCompatActivity() {
+    companion object {
+        private fun DataNode<*>.buildResponseTask() = DataNode.RetrySharedTask.Simple {
+            promised {
+                rsp(
+                    http {
+                        Method = HTTPMethod.GET
+                        URL = "https://guetcob.com/question"
+                    }
+                        .JSONArray().toKPromise()
+                        .then { rsv(value.Result.getJSONArray(2).getString(1)) }
+                )
+            }.promise.toJavaPromise()
+        }
+
+        private fun DataNode<*>.buildSRCListTask() = DataNode.RetrySharedTask.Simple {
+            promised { rsv(List(999) { it }) }.promise.toJavaPromise()
+        }
+    }
+
+    class JavaState(params: DataNodeParameters<UI>) : DataNode<JavaState.UI>(params) {
+        class UI(params: Inflater) :
+            DataViewHolder<ActivityCardListBinding>(params, ActivityCardListBinding::class.java) {
+            fun setLastDisposed(lastDisposed: Int) {
+                view.lastDisposed.text = "last disposed: $lastDisposed"
+            }
+        }
+
+        class ItemState(params: DataNodeParameters<UI>) : DataNode<ItemState.UI>(params) {
+            class UI(params: Inflater) :
+                DataViewHolder<CardBinding>(params, CardBinding::class.java)
+
+            private val response: Binding<String> = bindTask(
+                TagKey(R.id.tagKey_CardListActivityItem, R.id.tagInitKey_CardListActivityItem),
+                buildResponseTask()
+            )
+
+            override fun __Bind__(changedBindingKeys: MutableSet<Int>?) {
+                response.Bind(response.BindParameters(changedBindingKeys)
+                    .setInit { holder ->
+                        holder.view.title.text = "hello $position"
+                        null
+                    }.setOnSucceed { holder, resp ->
+                        holder.view.title.text = resp
+                        null
+                    })
+            }
+        }
+
+        inner class Adapter(params: DataSourceParameters) :
+            DataSourceAdapter<ItemState.UI, ItemState>(params) {
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemState.UI {
+                return ItemState.UI(Inflater(LayoutInflater.from(parent.context), parent))
+            }
+
+            override fun beforeViewRecycled_ui(holder: ItemState.UI) {
+                EmitChange_ui(mutableSetOf(lastDisposedBinding.SetResult(holder.adapterPosition)))
+            }
+        }
+
+        private val srcList: Binding<List<Int>> = bindTask(
+            TagKey(R.id.tagKey_CardListActivityItemList, R.id.tagInitKey_CardListActivityItemList),
+            buildSRCListTask()
+        )
+
+        private val lastDisposedBinding: Binding<Int> = emptyBinding(
+            TagKey(
+                R.id.tagKey_CardListActivityLastDisposed,
+                R.id.tagInitKey_CardListActivityLastDisposed
+            ),
+        )
+
+        override fun __Bind__(changedBindingKeys: MutableSet<Int>?) {
+            srcList.Bind(srcList.BindParameters(changedBindingKeys)
+                .setInit { holder ->
+                    holder.view.cardList.run cardListRun@{
+                        layoutManager = LinearLayoutManager(
+                            context,
+                            RecyclerView.VERTICAL,
+                            false
+                        )
+                        adapter = Adapter(
+                            DataSourceParameters(this@cardListRun, lifecycleOwner)
+                        )
+                    }
+                    null
+                }.setOnSucceed { holder, list ->
+                    (holder.view.cardList.adapter as Adapter).Source.Append(list.map {
+                        ItemState(DataNodeParameters(null, null))
+                    })
+                    null
+                })
+            lastDisposedBinding.Bind(lastDisposedBinding.BindParameters(changedBindingKeys)
+                .setInit { holder ->
+                    holder.setLastDisposed(-1)
+                    null
+                }.setOnSucceed { holder, v ->
+                    holder.setLastDisposed(v)
+                    null
+                })
+        }
+    }
     class State(params: DataNodeParameters.State) : ComposableNode(params) {
         class ItemState(
             params: DataNodeParameters.State,
@@ -30,18 +140,7 @@ class CardListActivity : AppCompatActivity() {
         ) : ComposableNode(params) {
             private val response: Binding<String> = bindTask(
                 TagKey(R.id.tagKey_CardListActivityItem, R.id.tagInitKey_CardListActivityItem),
-                RetrySharedTask.Simple {
-                    promised {
-                        rsp(
-                            http {
-                                Method = HTTPMethod.GET
-                                URL = "https://guetcob.com/question"
-                            }
-                                .JSONArray().toKPromise()
-                                .then { rsv(value.Result.getJSONArray(2).getString(1)) }
-                        )
-                    }.promise.toJavaPromise()
-                }
+                buildResponseTask()
             )
 
             override fun __Bind__(changedBindingKeys: MutableSet<Int>?) {
@@ -85,9 +184,7 @@ class CardListActivity : AppCompatActivity() {
 
         private val srcList: Binding<List<Int>> = bindTask(
             TagKey(R.id.tagKey_CardListActivityItemList, R.id.tagInitKey_CardListActivityItemList),
-            RetrySharedTask.Simple {
-                promised { rsv(List(999) { it }) }.promise.toJavaPromise()
-            }
+            buildSRCListTask()
         )
 
         private val lastDisposedBinding: Binding<Int> = emptyBinding(
@@ -109,7 +206,7 @@ class CardListActivity : AppCompatActivity() {
                 val adapter = remember {
                     ListAdapter(
                         ComposableAdapter.ComposableAdapterParameters(
-                            DataSource.DataSourceParameters.State(lifecycleOwner),
+                            DataSourceParameters.State(lifecycleOwner),
                             src
                         )
                     )
@@ -121,8 +218,7 @@ class CardListActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private fun composeUI() {
 //        val list = mutableStateOf(List(999) { it })
 //        var lastDisposed by mutableIntStateOf(-1)
         setContent {
@@ -152,5 +248,19 @@ class CardListActivity : AppCompatActivity() {
 //            }
             state.Content()
         }
+    }
+
+    private fun xmlUI() {
+        val holder = JavaState.UI(Inflater(layoutInflater, null))
+        setContentView(holder.itemView)
+        JavaState(
+            DataNode.DataNodeParameters(WeakReference(this), holder)
+        ).EmitChange_ui(null)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+//        composeUI()
+        xmlUI()
     }
 }
