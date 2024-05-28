@@ -288,27 +288,27 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
         ));
     }
 
-    protected <D, M> BindingX<D, M> bindTaskX(TagKey key, @Nullable RetrySharedTask<D, M> task) {
+    protected final <D, M> BindingX<D, M> bindTaskX(TagKey key, @Nullable RetrySharedTask<D, M> task) {
         return new BindingX<>(key.Key, key.InitKey, task);
     }
 
-    protected <D> Binding<D> bindTask(TagKey key, @Nullable RetrySharedTask<D, Object> task) {
+    protected final <D> Binding<D> bindTask(TagKey key, @Nullable RetrySharedTask<D, Object> task) {
         return new Binding<>(key.Key, key.InitKey, task);
     }
 
-    protected <D, M> BindingX<D, M> emptyBindingX(@NotNull TagKey key) {
+    protected final <D, M> BindingX<D, M> emptyBindingX(@NotNull TagKey key) {
         return new BindingX<>(key.Key, key.InitKey, null);
     }
 
-    protected <D> Binding<D> emptyBinding(@NotNull TagKey key) {
+    protected final <D> Binding<D> emptyBinding(@NotNull TagKey key) {
         return new Binding<>(key.Key, key.InitKey, null);
     }
 
-    protected BindingX<Object, Object> emptyBindingX() {
+    protected final BindingX<Object, Object> emptyBindingX() {
         return new BindingX<>(null, null, null);
     }
 
-    protected Binding<Object> emptyBinding() {
+    protected final Binding<Object> emptyBinding() {
         return new Binding<>(null, null, null);
     }
 
@@ -793,6 +793,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
     final void bind(@NotNull VH holder, Set<Integer> changedBindingKeys) {
         holder.itemView.setTag(TagKey.Companion.getDataNode().Key, DataNode.this);
+        holder.itemView.setTag(TagKey.Companion.getDataNodeVHBroadcaster().Key, currentBroadcaster());
         binding = new WeakReference<>(holder);
         wrapBind(changedBindingKeys);
     }
@@ -815,14 +816,21 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     protected void color_ui(@NotNull VH holder, @NotNull ColorConfig<?> colors) {
     }
 
-    protected final void cancel_ui() {
+    protected final void cancel_ui(@Nullable PromiseCancelledBroadcaster broadcaster) {
         AppKit.Companion.ensureMainThread();
-        broadcaster.get().Broadcast();
+        if (broadcaster != null) {
+            broadcaster.Broadcast();
+        }
+    }
+
+    final PromiseCancelledBroadcaster currentBroadcaster() {
+        AppKit.Companion.ensureMainThread();
+        return broadcaster.get();
     }
 
     private void refreshScope() {
         AppKit.Companion.ensureMainThread();
-        cancel_ui();
+        cancel_ui(currentBroadcaster());
         synchronized (scopeMutex) {
             broadcaster.set(buildBroadcaster());
             scope.set(buildScope(broadcaster.get()));
@@ -874,7 +882,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     ) {
                         if (event.getTargetState() == Lifecycle.State.DESTROYED) {
                             lo.getLifecycle().removeObserver(this);
-                            cancel_ui();
+                            cancel_ui(currentBroadcaster());
                         }
                     }
                 });

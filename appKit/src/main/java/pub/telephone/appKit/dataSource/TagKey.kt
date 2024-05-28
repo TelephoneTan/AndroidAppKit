@@ -11,6 +11,10 @@ data class TagKey(
     val InitKey: Int
 ) {
     companion object {
+        val DataNodeVHBroadcaster = TagKey(
+            R.id.tagKey_DataNodeVHBroadcaster,
+            R.id.tagInitKey_DataNodeVHBroadcaster
+        )
         val DataNodeColor = TagKey(R.id.tagKey_DataNodeColor, R.id.tagInitKey_DataNodeColor)
         val MyActivityLoad = TagKey(R.id.tagKey_MyActivityLoad, R.id.tagInitKey_MyActivityLoad)
         val BrowserSetCurrentWebView = TagKey(
