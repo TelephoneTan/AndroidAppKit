@@ -6,14 +6,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
-import androidx.viewbinding.ViewBinding
 import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
 
 abstract class ComposableAdapter<D, CD : ComposableNode>(
     params: DataSourceParameters.State,
     private val srcState: State<DataNode.Result<List<D>>>
-) : DataAdapter<DataViewHolder<ViewBinding>, CD> {
+) : DataAdapter<ComposableNode.UI, CD> {
     class ComposableAdapterParameters<D>(
         val params: DataSourceParameters.State,
         val srcState: State<DataNode.Result<List<D>>>

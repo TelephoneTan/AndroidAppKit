@@ -100,6 +100,9 @@ public abstract class DataSourceAdapter<
                 (PromiseCancelledBroadcaster)
                         holder.itemView.getTag(TagKey.Companion.getDataNodeVHBroadcaster().Key)
         );
+        if (holder instanceof ComposableNode.UI) {
+            ((ComposableNode.UI) holder).view.composeView.disposeComposition();
+        }
         //
         beforeViewRecycled_ui(holder);
     }
