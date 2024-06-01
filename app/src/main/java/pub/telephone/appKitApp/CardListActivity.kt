@@ -201,7 +201,7 @@ class CardListActivity : AppCompatActivity() {
 
         inner class ListAdapter(
             params: ComposableAdapterParameters<Int>,
-        ) : ComposableAdapter<Int, ItemState>(params) {
+        ) : ComposableAdapter<Int, UI, ItemState>(params) {
             @Composable
             override fun __Content__(list: Result<List<ItemState>>) {
                 LazyColumn {

@@ -9,10 +9,10 @@ import androidx.compose.runtime.remember
 import pub.telephone.appKit.AppKit
 import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
 
-abstract class ComposableAdapter<D, CD : ComposableNode>(
+abstract class ComposableAdapter<D, CH : DataViewHolder<*>, CD : DataNode<CH>>(
     params: DataSourceParameters.State,
     private val srcState: State<DataNode.Result<List<D>>>
-) : DataAdapter<ComposableNode.UI, CD> {
+) : DataAdapter<CH, CD> {
     class ComposableAdapterParameters<D>(
         val params: DataSourceParameters.State,
         val srcState: State<DataNode.Result<List<D>>>
