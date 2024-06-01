@@ -330,14 +330,23 @@ public class DataSource<
         });
     }
 
+    void shuffleAllSource(List<T> newItems) {
+        source.clear();
+        for (int i = 0; i < newItems.size(); i++) {
+            T t = newItems.get(i);
+            initItem(t);
+            t.position = i;
+        }
+        source.addAll(newItems);
+    }
+
     public final void ShuffleAll(Function1<List<T>, List<T>> shuffler, Runnable... after) {
         post(() -> {
             List<T> res = shuffler.invoke(GetAll());
             if (res == null) {
                 return;
             }
-            source.clear();
-            source.addAll(res);
+            shuffleAllSource(res);
             adapter.notifyDataSetChanged();
             postAfter(after);
         });

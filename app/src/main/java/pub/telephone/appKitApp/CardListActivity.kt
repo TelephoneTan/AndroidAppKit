@@ -223,7 +223,7 @@ class CardListActivity : AppCompatActivity() {
             }
 
             override fun map(data: Int): ItemState {
-                return ItemState(DataNodeParameters.State(lifecycleOwner), data)
+                return ItemState(DataNodeParameters.State(null), data)
             }
         }
 
