@@ -866,6 +866,8 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     }
 
     private final AtomicBoolean destroyCancelRegistered = new AtomicBoolean(false);
+    private final MutableState<Boolean> emitMutableState = DataNodeKt.mutableStateOf(false);
+    final State<Boolean> emitState = emitMutableState;
 
     final void wrapBind(Set<Integer> changedBindingKeys) {
         if (changedBindingKeys == null || changedBindingKeys.isEmpty()) {
@@ -899,6 +901,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
             return null;
         });
         __Bind__(changedBindingKeys);
+        emitMutableState.setValue(!emitMutableState.getValue());
     }
 
     protected abstract void __Bind__(Set<Integer> changedBindingKeys);
