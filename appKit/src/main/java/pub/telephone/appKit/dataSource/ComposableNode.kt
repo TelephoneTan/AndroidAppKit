@@ -6,7 +6,10 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.annotation.IntDef
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.LifecycleOwner
 import pub.telephone.appKit.AppKit
@@ -42,6 +45,11 @@ abstract class ComposableNode(params: DataNodeParameters.State) :
             onDispose {
                 cancel_ui(broadcaster)
             }
+        }
+        val currentView by rememberUpdatedState(LocalView.current)
+        remember(emitState.value) {
+            currentView.requestLayout()
+            true
         }
     }
 
