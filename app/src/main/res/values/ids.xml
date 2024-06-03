@@ -10,4 +10,6 @@
     <item name="tagInitKey_CardListActivityItem" type="id" />
     <item name="tagKey_CardListActivityLastDisposed" type="id" />
     <item name="tagInitKey_CardListActivityLastDisposed" type="id" />
+    <item name="tagKey_CardListActivityItemRefresh" type="id" />
+    <item name="tagInitKey_CardListActivityItemRefresh" type="id" />
 </resources>

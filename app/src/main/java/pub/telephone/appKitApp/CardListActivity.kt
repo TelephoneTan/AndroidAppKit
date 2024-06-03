@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import pub.telephone.appKit.MyApp
 import pub.telephone.appKit.dataSource.ComposableAdapter
 import pub.telephone.appKit.dataSource.ComposableNode
+import pub.telephone.appKit.dataSource.Content
 import pub.telephone.appKit.dataSource.DataNode
 import pub.telephone.appKit.dataSource.DataSource.DataSourceParameters
 import pub.telephone.appKit.dataSource.DataSourceAdapter
@@ -45,7 +46,7 @@ class CardListActivity : AppCompatActivity() {
                     http {
                         Method = HTTPMethod.GET
                         URL = "https://guetcob.com/question"
-//                        Proxy = NetworkProxy(java.net.Proxy.Type.HTTP, "192.168.1.53", 9090)
+//                        Proxy = NetworkProxy(java.net.Proxy.Type.HTTP, "192.168.1.41", 9090)
                         CustomizedHeaderList = listOf(arrayOf("idd", x))
                     }
                         .JSONArray().toKPromise()
@@ -54,6 +55,9 @@ class CardListActivity : AppCompatActivity() {
                             rsv(value)
                         }
                         .then { rsv(value.Result.getJSONArray(2).getString(1)) }
+                        .forCancel<String> {
+                            Log.w(NAME, "forCancel: $x")
+                        }
                 )
             }.promise.toJavaPromise()
         }
@@ -71,13 +75,29 @@ class CardListActivity : AppCompatActivity() {
             }
         }
 
-        class ItemState(params: DataNodeParameters<UI>) : DataNode<ItemState.UI>(params) {
+        class ItemState(
+            params: DataNodeParameters<UI>,
+            val id: Int
+        ) : DataNode<ItemState.UI>(params) {
             class UI(params: Inflater) :
                 DataViewHolder<CardBinding>(params, CardBinding::class.java)
 
             private val response: Binding<String> = bindTask(
                 TagKey(R.id.tagKey_CardListActivityItem, R.id.tagInitKey_CardListActivityItem),
-                buildResponseTask("")
+                buildResponseTask(id.toString())
+            )
+
+            private val refresh: Binding<Any?> = bindTask(
+                TagKey(
+                    R.id.tagKey_CardListActivityItemRefresh,
+                    R.id.tagInitKey_CardListActivityItemRefresh
+                ),
+                RetrySharedTask.Simple {
+                    promised {
+                        delay(8000)
+                        rsv(null as Any?)
+                    }.promise.toJavaPromise()
+                }
             )
 
             override fun __Bind__(changedBindingKeys: MutableSet<Int>?) {
@@ -87,6 +107,13 @@ class CardListActivity : AppCompatActivity() {
                         null
                     }.setOnSucceed { holder, resp ->
                         holder.view.title.text = resp
+                        null
+                    })
+                refresh.Bind(refresh.BindParameters(changedBindingKeys)
+                    .setOnSucceed { holder, x ->
+                        if (id == 2) {
+                            EmitChange_ui(null)
+                        }
                         null
                     })
             }
@@ -153,7 +180,7 @@ class CardListActivity : AppCompatActivity() {
                         })
                     } else {
                         (holder.view.cardList.adapter as Adapter).Source.Append(list.map {
-                            ItemState(DataNodeParameters(null, null))
+                            ItemState(DataNodeParameters(null, null), it)
                         })
                     }
                     null
@@ -199,7 +226,39 @@ class CardListActivity : AppCompatActivity() {
             }
         }
 
-        inner class ListAdapter(
+        inner class XMLAdapter(
+            params: ComposableAdapterParameters<Int>,
+        ) : ComposableAdapter<Int, JavaState.ItemState.UI, JavaState.ItemState>(params) {
+            @Composable
+            override fun __Content__(list: Result<List<JavaState.ItemState>>) {
+                LazyColumn {
+                    if (list.isSuccess) {
+                        items(
+                            list.value.size,
+                            key = { list.value[it].id },
+                            contentType = { getItemViewType(list.value[it]) }
+                        ) {
+                            list.value[it].Content(factory = {
+                                JavaState.ItemState.UI(
+                                    Inflater(LayoutInflater.from(it), null)
+                                )
+                            })
+                            DisposableEffect(true) {
+                                onDispose {
+                                    EmitChange_ui(mutableSetOf(lastDisposedBinding.SetResult(it)))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            override fun map(data: Int): JavaState.ItemState {
+                return JavaState.ItemState(DataNodeParameters(null, null), data)
+            }
+        }
+
+        inner class Adapter(
             params: ComposableAdapterParameters<Int>,
         ) : ComposableAdapter<Int, UI, ItemState>(params) {
             @Composable
@@ -246,13 +305,17 @@ class CardListActivity : AppCompatActivity() {
 
         @Composable
         override fun __Content__() {
+            val useXMLChild = true
             Column {
                 val src = srcList.state
                 val adapter = remember {
-                    ListAdapter(
+                    if (useXMLChild) XMLAdapter(
                         ComposableAdapter.ComposableAdapterParameters(
-                            DataSourceParameters.State(lifecycleOwner),
-                            src
+                            DataSourceParameters.State(lifecycleOwner), src
+                        )
+                    ) else Adapter(
+                        ComposableAdapter.ComposableAdapterParameters(
+                            DataSourceParameters.State(lifecycleOwner), src
                         )
                     )
                 }
@@ -315,10 +378,23 @@ class CardListActivity : AppCompatActivity() {
         ).EmitChange_ui(null)
     }
 
+    private fun xmlUI2() {
+        JavaState(
+            DataNode.DataNodeParameters(WeakReference(this), null)
+        ).apply {
+            setContent {
+                Content(factory = {
+                    JavaState.UI(Inflater(layoutInflater, null))
+                })
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        composeUI()
-        xmlUI()
+        composeUI()
+//        xmlUI()
 //        composeUI2()
+//        xmlUI2()
     }
 }
