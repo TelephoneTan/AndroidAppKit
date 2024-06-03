@@ -793,7 +793,6 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
 
     final void bind(@NotNull VH holder, Set<Integer> changedBindingKeys) {
         holder.itemView.setTag(TagKey.Companion.getDataNode().Key, DataNode.this);
-        holder.itemView.setTag(TagKey.Companion.getDataNodeVHBroadcaster().Key, currentBroadcaster());
         binding = new WeakReference<>(holder);
         wrapBind(changedBindingKeys);
     }
@@ -816,21 +815,51 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
     protected void color_ui(@NotNull VH holder, @NotNull ColorConfig<?> colors) {
     }
 
-    protected final void cancel_ui(@Nullable PromiseCancelledBroadcaster broadcaster) {
+    WeakReference<Object> cancelToken = null;
+
+    private void cancel() {
+        broadcaster.get().Broadcast();
+    }
+
+    private boolean isValidToken(@Nullable Object token) {
         AppKit.Companion.ensureMainThread();
-        if (broadcaster != null) {
-            broadcaster.Broadcast();
+        if (token == null) {
+            return false;
+        }
+        if (cancelToken != null) {
+            Object t = cancelToken.get();
+            if (t != null && t == token) {
+                return true;
+            }
+        }
+        if (binding != null) {
+            VH vh = binding.get();
+            if (vh != null && vh == token) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected final void setCancelToken_ui(@Nullable Object token) {
+        AppKit.Companion.ensureMainThread();
+        if (token == null) {
+            return;
+        }
+        cancelToken = new WeakReference<>(token);
+    }
+
+    protected final void cancel_ui(@Nullable Object token) {
+        AppKit.Companion.ensureMainThread();
+        if (isValidToken(token)) {
+            cancel();
         }
     }
 
-    final PromiseCancelledBroadcaster currentBroadcaster() {
-        AppKit.Companion.ensureMainThread();
-        return broadcaster.get();
-    }
 
     private void refreshScope() {
         AppKit.Companion.ensureMainThread();
-        cancel_ui(currentBroadcaster());
+        cancel();
         synchronized (scopeMutex) {
             broadcaster.set(buildBroadcaster());
             scope.set(buildScope(broadcaster.get()));
@@ -884,7 +913,7 @@ public abstract class DataNode<VH extends DataViewHolder<?>> {
                     ) {
                         if (event.getTargetState() == Lifecycle.State.DESTROYED) {
                             lo.getLifecycle().removeObserver(this);
-                            cancel_ui(currentBroadcaster());
+                            cancel();
                         }
                     }
                 });

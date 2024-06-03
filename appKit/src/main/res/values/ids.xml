@@ -12,6 +12,6 @@
     <item name="tagInitKey_MyActivityLoad" type="id" />
     <item name="tagKey_DataNodeColor" type="id" />
     <item name="tagInitKey_DataNodeColor" type="id" />
-    <item name="tagKey_DataNodeVHBroadcaster" type="id" />
-    <item name="tagInitKey_DataNodeVHBroadcaster" type="id" />
+    <item name="tagKey_DataNodeVH" type="id" />
+    <item name="tagInitKey_DataNodeVH" type="id" />
 </resources>

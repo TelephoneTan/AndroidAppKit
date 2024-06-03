@@ -40,10 +40,11 @@ abstract class ComposableNode(params: DataNodeParameters.State) :
     @Composable
     fun Content() {
         __Content__()
-        val broadcaster = currentBroadcaster()
         DisposableEffect(true) {
+            val token = object {}
+            setCancelToken_ui(token)
             onDispose {
-                cancel_ui(broadcaster)
+                cancel_ui(token)
             }
         }
         val currentView by rememberUpdatedState(LocalView.current)

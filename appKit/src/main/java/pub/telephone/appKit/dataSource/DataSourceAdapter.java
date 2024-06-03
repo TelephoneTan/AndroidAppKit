@@ -13,8 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import pub.telephone.javapromise.async.promise.PromiseCancelledBroadcaster;
-
 public abstract class DataSourceAdapter<
         VH extends DataViewHolder<?>,
         T extends DataNode<VH>
@@ -96,10 +94,7 @@ public abstract class DataSourceAdapter<
         if (pos == RecyclerView.NO_POSITION) {
             return;
         }
-        Source.Get(pos).cancel_ui(
-                (PromiseCancelledBroadcaster)
-                        holder.itemView.getTag(TagKey.Companion.getDataNodeVHBroadcaster().Key)
-        );
+        Source.Get(pos).cancel_ui(holder);
         if (holder instanceof ComposableNode.UI) {
             ((ComposableNode.UI) holder).view.composeView.disposeComposition();
         }
