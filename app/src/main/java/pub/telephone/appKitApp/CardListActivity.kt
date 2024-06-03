@@ -239,9 +239,7 @@ class CardListActivity : AppCompatActivity() {
                             contentType = { getItemViewType(list.value[it]) }
                         ) {
                             list.value[it].Content(factory = {
-                                JavaState.ItemState.UI(
-                                    Inflater(LayoutInflater.from(it), null)
-                                )
+                                JavaState.ItemState.UI(Inflater(it, null))
                             })
                             DisposableEffect(true) {
                                 onDispose {
@@ -383,9 +381,7 @@ class CardListActivity : AppCompatActivity() {
             DataNode.DataNodeParameters(WeakReference(this), null)
         ).apply {
             setContent {
-                Content(factory = {
-                    JavaState.UI(Inflater(layoutInflater, null))
-                })
+                Content(factory = { JavaState.UI(Inflater(it, null)) })
             }
         }
     }

@@ -1,6 +1,6 @@
 package pub.telephone.appKit.dataSource
 
-import android.content.Context
+import android.view.LayoutInflater
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -24,13 +24,13 @@ internal fun <T> mutableStateOf(value: T) = androidx.compose.runtime.mutableStat
 
 @Composable
 fun <VH : DataViewHolder<*>> DataNode<VH>.Content(
-    factory: (Context) -> VH,
+    factory: (LayoutInflater) -> VH,
     modifier: Modifier = Modifier,
 ) {
     var initialized by remember { mutableStateOf(false) }
     AndroidView(
         factory = {
-            factory(it).let { vh ->
+            factory(LayoutInflater.from(it)).let { vh ->
                 vh.itemView.also {
                     ViewCompat.setNestedScrollingEnabled(it, true)
                     it.setTag(TagKey.DataNodeVH.Key, vh)
